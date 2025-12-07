@@ -46,12 +46,13 @@ class ChatHistory(BaseSQLite):
                 (session_id, role, message),
             )
 
-    def get_message(self, session_id: int):
+    def get_messages(self, session_id: int):
         with self._get_connection() as conn:
             cur = conn.execute(
-                """SELECT role, message, created_at 
-                FROM chat_messages WHERE session_id = ? ORDER BY id""",
-                (session_id),
+                """SELECT role, message, created_at
+                FROM chat_messages
+                WHERE session_id = ? ORDER BY id""",
+                (session_id,),
             )
             return cur.fetchall()
 
