@@ -20,6 +20,7 @@ def list_history():
     for s in sessions:
         click.echo(f"{s['id']}: created at {s['created_at']}")
 
+
 @history.command("show", help="Show chat session by ID.")
 @click.argument(
     "session_id",
