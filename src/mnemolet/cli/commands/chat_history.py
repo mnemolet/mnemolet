@@ -22,10 +22,7 @@ def list_history():
 
 
 @history.command("show", help="Show chat session by ID.")
-@click.argument(
-    "session_id",
-    type=int,
-)
+@click.argument("session_id", type=int, required=True)
 def show(session_id):
     h = ChatHistory()
     messages = h.get_messages(session_id)
@@ -39,3 +36,20 @@ def show(session_id):
         role = "You" if m["role"] == "user" else "Assistant"
         ts = m["created_at"]
         click.echo(f"[{ts}] {role}: {m['message']}")
+
+
+@history.command("rm", help="Remove chat session by ID.")
+@click.argument("session_id", type=int, required=True)
+def remove(session_id):
+    h = ChatHistory()
+
+    if not h.session_exists(session_id):
+        click.echo(f"Session {id} does not exist.")
+        return
+
+    click.confirm(
+        f"Are you sure you want to delete session '{session_id}'?",
+        abort=True,
+    )
+    h.delete_session(session_id)
+    click.echo(f"Removed chat session {session_id}")

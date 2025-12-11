@@ -62,3 +62,18 @@ class ChatHistory(BaseSQLite):
                 "SELECT id, created_at FROM chat_sessions ORDER BY id DESC"
             )
             return cur.fetchall()
+
+    def session_exists(self, session_id: int) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute(
+                "SELECT 1 FROM chat_sessions WHERE id = ?", (session_id,)
+            )
+            return cur.fetchone() is not None
+
+    def delete_session(self, session_id: int):
+        with self._get_connection() as conn:
+            conn.execute(
+                "DELETE FROM chat_messages WHERE session_id = ?", (session_id,)
+            )
+            conn.execute("DELETE FROM chat_sessions WHERE id = ?", (session_id,))
+            conn.commit()
