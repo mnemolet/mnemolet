@@ -77,3 +77,8 @@ class ChatHistory(BaseSQLite):
             )
             conn.execute("DELETE FROM chat_sessions WHERE id = ?", (session_id,))
             conn.commit()
+
+    def delete_all_sessions(self):
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM chat_messages")
+            conn.execute("DELETE FROM chat_sessions")

@@ -52,4 +52,16 @@ def remove(session_id):
         abort=True,
     )
     h.delete_session(session_id)
-    click.echo(f"Removed chat session {session_id}")
+    click.echo(f"Removed chat session {session_id}.")
+
+
+@history.command("prune", help="Remove all chat sessions.")
+def remove_all():
+    h = ChatHistory()
+
+    click.confirm(
+        "Are you sure you want to delete all sessions?",
+        abort=True,
+    )
+    h.delete_all_sessions()
+    click.echo("All chat sessions have been deleted.")
