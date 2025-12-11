@@ -1,10 +1,9 @@
 import logging
-import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
-from mnemolet.config import DB_PATH
+from mnemolet.core.storage.base import BaseSQLite
 
 logger = logging.getLogger(__name__)
 
@@ -19,21 +18,10 @@ CREATE TABLE IF NOT EXISTS files (
 """
 
 
-class DBTracker:
-    def __init__(self, db_path: Path = DB_PATH):
-        self.db_path = db_path
+class DBTracker(BaseSQLite):
+    def __init__(self, db_path: Path = None):
+        super().__init__(db_path)
         self._create_tables()
-
-    def _get_connection(self) -> sqlite3.Connection:
-        """
-        Returns a SQLite connection.
-        """
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA foreign_keys=ON;")
-        return conn
 
     def _create_tables(self):
         """
@@ -41,7 +29,7 @@ class DBTracker:
         """
         with self._get_connection() as conn:
             logger.info("[DBTracker] Create Table Files")
-            conn.execute(CREATE_TABLE_FILES)
+            self.exec_schema(conn, CREATE_TABLE_FILES)
 
     def add_file(self, path: str, file_hash: str):
         """
