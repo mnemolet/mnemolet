@@ -1,6 +1,6 @@
 import click
 
-from mnemolet.core.storage.chat_history import ChatHistory
+from mnemolet.cuore.storage.chat_history import ChatHistory
 
 
 @click.group("history")
@@ -44,7 +44,7 @@ def remove(session_id):
     h = ChatHistory()
 
     if not h.session_exists(session_id):
-        click.echo(f"Session {id} does not exist.")
+        click.echo(f"Session {session_id} does not exist.")
         return
 
     click.confirm(

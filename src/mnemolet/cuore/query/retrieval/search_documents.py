@@ -1,4 +1,4 @@
-from mnemolet.core.query.retrieval.qdrant import Qdrant
+from mnemolet.cuore.query.retrieval.qdrant import Qdrant
 
 
 def search_documents(

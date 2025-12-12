@@ -22,7 +22,7 @@ API_BASE = "http://localhost:8000"  # TODO: hardcoded url
 
 @ui_router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    from mnemolet.core.health.checks import get_status
+    from mnemolet.cuore.health.checks import get_status
 
     try:
         result = get_status(QDRANT_URL, OLLAMA_URL)

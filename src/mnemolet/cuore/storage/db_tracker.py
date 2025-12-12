@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
-from mnemolet.core.storage.base import BaseSQLite
+from mnemolet.cuore.storage.base import BaseSQLite
 
 logger = logging.getLogger(__name__)
 

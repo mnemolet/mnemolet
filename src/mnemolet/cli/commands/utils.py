@@ -4,7 +4,7 @@ from functools import wraps
 from mnemolet.config import (
     QDRANT_URL,
 )
-from mnemolet.core.utils.qdrant import QdrantManager
+from mnemolet.cuore.utils.qdrant import QdrantManager
 
 
 def requires_qdrant(f):

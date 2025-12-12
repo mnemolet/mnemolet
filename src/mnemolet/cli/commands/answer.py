@@ -46,9 +46,9 @@ def answer(
     """
     Search Qdrant and generate an answer using local LLM.
     """
-    from mnemolet.core.query.generation.generate_answer import generate_answer
-    from mnemolet.core.query.generation.local_generator import get_llm_generator
-    from mnemolet.core.query.retrieval.retriever import get_retriever
+    from mnemolet.cuore.query.generation.generate_answer import generate_answer
+    from mnemolet.cuore.query.generation.local_generator import get_llm_generator
+    from mnemolet.cuore.query.retrieval.retriever import get_retriever
 
     retriever = get_retriever(
         url=QDRANT_URL,

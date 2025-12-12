@@ -1,11 +1,11 @@
 import logging
 from typing import Generator, Optional, Tuple
 
-from mnemolet.core.query.generation.local_generator import (
+from mnemolet.cuore.query.generation.local_generator import (
     LocalGenerator,
 )
-from mnemolet.core.query.retrieval.retriever import Retriever
-from mnemolet.core.utils.utils import _only_unique
+from mnemolet.cuore.query.retrieval.retriever import Retriever
+from mnemolet.cuore.utils.utils import _only_unique
 
 logger = logging.getLogger(__name__)
 

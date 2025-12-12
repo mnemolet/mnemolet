@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from mnemolet.core.query.retrieval.search_documents import search_documents
-from mnemolet.core.utils.utils import filter_by_min_score
+from mnemolet.cuore.query.retrieval.search_documents import search_documents
+from mnemolet.cuore.utils.utils import filter_by_min_score
 
 
 @dataclass
