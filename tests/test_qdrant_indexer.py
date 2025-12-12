@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock, patch
 
-from mnemolet.core.indexing.qdrant_indexer import QdrantIndexer
+from mnemolet.cuore.indexing.qdrant_indexer import QdrantIndexer
 
 test_url = "http://localhost:6333"
 test_collection = "test_collection"
 
 
-@patch("mnemolet.core.indexing.qdrant_indexer.QdrantClient")
+@patch("mnemolet.cuore.indexing.qdrant_indexer.QdrantClient")
 def test_init_collection(mock_client_class):
     mock_client = MagicMock()
     mock_client_class.return_value = mock_client
@@ -21,7 +21,7 @@ def test_init_collection(mock_client_class):
     assert kwargs["vectors_config"].size == 384
 
 
-@patch("mnemolet.core.indexing.qdrant_indexer.QdrantClient")
+@patch("mnemolet.cuore.indexing.qdrant_indexer.QdrantClient")
 def test_store_embeddings(mock_client_class):
     mock_client = MagicMock()
     mock_client_class.return_value = mock_client
