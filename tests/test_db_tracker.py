@@ -1,7 +1,7 @@
 import os
 
 from mnemolet.config import DB_PATH
-from mnemolet.core.storage.db_tracker import DBTracker
+from mnemolet.cuore.storage.db_tracker import DBTracker
 
 
 def setup_module(module):
