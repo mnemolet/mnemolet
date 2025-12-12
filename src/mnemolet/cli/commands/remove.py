@@ -4,7 +4,7 @@ from mnemolet.config import (
     QDRANT_COLLECTION,
     QDRANT_URL,
 )
-from mnemolet.core.utils.qdrant import QdrantManager
+from mnemolet.cuore.utils.qdrant import QdrantManager
 
 from .utils import requires_qdrant
 

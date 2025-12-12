@@ -4,12 +4,12 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from mnemolet.core.embeddings.local_llm_embed import (
+from mnemolet.cuore.embeddings.local_llm_embed import (
     get_dimension,
 )
-from mnemolet.core.indexing.qdrant_indexer import QdrantIndexer
-from mnemolet.core.ingestion.preprocessor import process_directory
-from mnemolet.core.storage.db_tracker import DBTracker
+from mnemolet.cuore.indexing.qdrant_indexer import QdrantIndexer
+from mnemolet.cuore.ingestion.preprocessor import process_directory
+from mnemolet.cuore.storage.db_tracker import DBTracker
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ def ingest(
 
 
 def _store_batch(indexer, chunk_batch, metadata_batch, embedding_dim, force):
-    from mnemolet.core.embeddings.local_llm_embed import (
+    from mnemolet.cuore.embeddings.local_llm_embed import (
         embed_texts_batch,
     )
 

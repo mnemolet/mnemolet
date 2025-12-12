@@ -3,7 +3,7 @@ import logging
 import pkgutil
 from pathlib import Path
 
-from mnemolet.core.ingestion.extractors.base import Extractor
+from mnemolet.cuore.ingestion.extractors.base import Extractor
 
 from . import __name__ as pkg_name
 from . import __path__

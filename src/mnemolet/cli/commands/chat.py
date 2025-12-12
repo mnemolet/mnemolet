@@ -12,7 +12,7 @@ from mnemolet.config import (
     QDRANT_URL,
     TOP_K,
 )
-from mnemolet.core.storage.chat_history import ChatHistory
+from mnemolet.cuore.storage.chat_history import ChatHistory
 
 from .utils import requires_qdrant
 
@@ -57,8 +57,8 @@ def start(ollama_url: str, top_k: int, ollama_model: str, min_score: float):
     """
     Start interactive chat session with the local LLM.
     """
-    from mnemolet.core.query.generation.local_generator import get_llm_generator
-    from mnemolet.core.query.retrieval.retriever import get_retriever
+    from mnemolet.cuore.query.generation.local_generator import get_llm_generator
+    from mnemolet.cuore.query.retrieval.retriever import get_retriever
 
     retriever = get_retriever(
         url=QDRANT_URL,
@@ -94,8 +94,8 @@ def replay(session_id):
     """
     Continue a chat using messages from a previous session.
     """
-    from mnemolet.core.query.generation.local_generator import get_llm_generator
-    from mnemolet.core.query.retrieval.retriever import get_retriever
+    from mnemolet.cuore.query.generation.local_generator import get_llm_generator
+    from mnemolet.cuore.query.retrieval.retriever import get_retriever
 
     h = ChatHistory()
     messages = h.get_messages(session_id)
@@ -138,7 +138,7 @@ def run_chat(
     session_id=None,
     history_store=None,
 ):
-    from mnemolet.core.query.generation.chat_session import ChatSession
+    from mnemolet.cuore.query.generation.chat_session import ChatSession
 
     session = ChatSession(
         retriever=retriever,

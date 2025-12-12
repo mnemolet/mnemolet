@@ -19,7 +19,7 @@ def dashboard(json_output: bool):
     """
     Show system and service health status.
     """
-    from mnemolet.core.health.checks import get_status
+    from mnemolet.cuore.health.checks import get_status
 
     status = get_status(QDRANT_URL, OLLAMA_URL)
 

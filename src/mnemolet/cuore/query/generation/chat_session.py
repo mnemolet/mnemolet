@@ -1,8 +1,8 @@
 import logging
 
-from mnemolet.core.query.generation.generate_answer import generate_answer
-from mnemolet.core.query.generation.local_generator import LocalGenerator
-from mnemolet.core.query.retrieval.retriever import Retriever
+from mnemolet.cuore.query.generation.generate_answer import generate_answer
+from mnemolet.cuore.query.generation.local_generator import LocalGenerator
+from mnemolet.cuore.query.retrieval.retriever import Retriever
 
 logger = logging.getLogger(__name__)
 

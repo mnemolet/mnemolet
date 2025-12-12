@@ -24,7 +24,7 @@ from mnemolet.config import (
     TOP_K,
     UPLOAD_DIR,
 )
-from mnemolet.core.utils.qdrant import QdrantManager
+from mnemolet.cuore.utils.qdrant import QdrantManager
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ async def ingest_files(
 
 
 async def do_ingestion(files, force: bool = False):
-    from mnemolet.core.ingestion.ingest import ingest
+    from mnemolet.cuore.ingestion.ingest import ingest
 
     saved_files = []
 
@@ -99,7 +99,7 @@ def do_search(
     embed_model: str = EMBED_MODEL,
     top_k: int = TOP_K,
 ):
-    from mnemolet.core.query.retrieval.search_documents import search_documents
+    from mnemolet.cuore.query.retrieval.search_documents import search_documents
 
     try:
         results = search_documents(
@@ -150,9 +150,9 @@ def get_answer(
     """
     Generate answer from local LLM.
     """
-    from mnemolet.core.query.generation.generate_answer import generate_answer
-    from mnemolet.core.query.generation.local_generator import get_llm_generator
-    from mnemolet.core.query.retrieval.retriever import get_retriever
+    from mnemolet.cuore.query.generation.generate_answer import generate_answer
+    from mnemolet.cuore.query.generation.local_generator import get_llm_generator
+    from mnemolet.cuore.query.retrieval.retriever import get_retriever
 
     try:
         retriever = get_retriever(
@@ -226,6 +226,6 @@ def get_collections():
 
 @api_router.get("/dashboard")
 def dashboard():
-    from mnemolet.core.health.checks import get_status
+    from mnemolet.cuore.health.checks import get_status
 
     return get_status(QDRANT_URL, OLLAMA_URL)

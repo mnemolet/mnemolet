@@ -5,7 +5,7 @@ from typing import Iterator
 import torch
 from faster_whisper import BatchedInferencePipeline, WhisperModel
 
-from mnemolet.core.ingestion.extractors.base import Extractor
+from mnemolet.cuore.ingestion.extractors.base import Extractor
 
 logger = logging.getLogger(__name__)
 

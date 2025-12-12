@@ -19,7 +19,7 @@ def stats(collection_name: str):
     """
     Output statistics about Qdrant database.
     """
-    from mnemolet.core.utils.qdrant import QdrantManager
+    from mnemolet.cuore.utils.qdrant import QdrantManager
 
     try:
         qm = QdrantManager(QDRANT_URL)

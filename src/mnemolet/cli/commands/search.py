@@ -24,8 +24,8 @@ def search(query: str, top_k: int, min_score: float):
     """
     Search Qdrant for relevant documents.
     """
-    from mnemolet.core.query.retrieval.search_documents import search_documents
-    from mnemolet.core.utils.utils import filter_by_min_score
+    from mnemolet.cuore.query.retrieval.search_documents import search_documents
+    from mnemolet.cuore.utils.utils import filter_by_min_score
 
     results = search_documents(
         qdrant_url=QDRANT_URL,

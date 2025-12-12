@@ -32,7 +32,7 @@ def ingest(ctx, directory: str, force: bool, batch_size: int):
     Ingest files from a directory into Qdrant.
     - streams files, chunks them, embeds text and stores data in Qdrant.
     """
-    from mnemolet.core.ingestion.ingest import ingest
+    from mnemolet.cuore.ingestion.ingest import ingest
 
     result = ingest(
         directory, batch_size, QDRANT_URL, QDRANT_COLLECTION, SIZE_CHARS, force=force

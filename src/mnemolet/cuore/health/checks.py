@@ -1,4 +1,4 @@
-from mnemolet.core.utils.qdrant import QdrantManager
+from mnemolet.cuore.utils.qdrant import QdrantManager
 
 from .ollama import get_ollama_status
 from .system import get_cpu_stats, get_memory_stats, get_python_version
