@@ -227,3 +227,7 @@ or
 or 
 
 `curl "http://127.0.0.1:8000/answer?query=<query>&top_k=2"`
+
+#### List sessions
+
+`curl "http://127.0.0.1:8000/api/chat/sessions"`

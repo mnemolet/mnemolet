@@ -12,6 +12,7 @@ from fastapi import (
 )
 from fastapi.responses import StreamingResponse
 
+from mnemolet.api.routes.chat import api_router as chat_router
 from mnemolet.config import (
     BATCH_SIZE,
     EMBED_MODEL,
@@ -30,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="MnemoLet API", version="0.0.1")
 api_router = APIRouter()
+
+api_router.include_router(chat_router)
 
 
 @api_router.post("/ingest")
