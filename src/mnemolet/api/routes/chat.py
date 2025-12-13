@@ -2,6 +2,7 @@ import logging
 
 from fastapi import (
     APIRouter,
+    HTTPException,
 )
 
 from mnemolet.cuore.storage.chat_history import ChatHistory
@@ -20,3 +21,11 @@ def list_sessions():
 def show_session(session_id: int):
     h = ChatHistory()
     return h.get_messages(session_id)
+
+
+@api_router.delete("/sessions/{session_id}", status_code=204)
+def delete_session(session_id: int):
+    h = ChatHistory()
+    if not h.session_exists(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+    h.delete_session(session_id)

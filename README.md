@@ -231,3 +231,7 @@ or
 #### List sessions
 
 `curl "http://127.0.0.1:8000/api/chat/sessions"`
+
+#### Delete session
+
+`curl -i -X DELETE "http://127.0.0.1:8000/api/chat/sessions/<session_id>"`
