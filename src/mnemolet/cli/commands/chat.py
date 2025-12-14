@@ -152,16 +152,16 @@ def run_chat(
             # stream response
             click.echo("assistant: ", nl=False)
 
-            assistant_msg = run_chat_turn(
+            for c in run_chat_turn(
                 retriever=retriever,
                 generator=generator,
                 user_input=user_input,
                 initial_messages=initial_messages,
                 session_id=session_id,
                 history_store=history_store,
-            )
-
-            click.echo(assistant_msg)
+                stream=True,
+            ):
+                click.echo(c, nl=False)
 
         except (KeyboardInterrupt, EOFError):
             click.echo("\n Exiting chat..")

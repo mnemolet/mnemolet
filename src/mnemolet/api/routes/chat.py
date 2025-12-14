@@ -6,6 +6,7 @@ from fastapi import (
     Query,
     Request,
 )
+from fastapi.responses import StreamingResponse
 
 from mnemolet.config import (
     EMBED_MODEL,
@@ -32,6 +33,8 @@ def create_session():
 
 @api_router.post("/sessions/{session_id}/messages")
 async def send_message(session_id: int, request: Request):
+    import json
+
     from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
     from mnemolet.cuore.query.generation.local_generator import get_llm_generator
     from mnemolet.cuore.query.retrieval.retriever import get_retriever
@@ -61,16 +64,22 @@ async def send_message(session_id: int, request: Request):
 
     generator = get_llm_generator(OLLAMA_URL, OLLAMA_MODEL)
 
-    assistant_msg = run_chat_turn(
-        retriever=retriever,
-        generator=generator,
-        user_input=message,
-        initial_messages=initial_messages,
-        session_id=session_id,
-        history_store=h,
-    )
+    def stream_response():
+        for c in run_chat_turn(
+            retriever=retriever,
+            generator=generator,
+            user_input=message,
+            initial_messages=initial_messages,
+            session_id=session_id,
+            history_store=h,
+            stream=True,
+        ):
+            data = json.dumps({"type": "chunk", "data": c})
+            yield f"{data}\n".encode("utf-8")
 
-    return {"assistant": assistant_msg}
+        # yield json.dumps({"done": True}).encode("utf-8")
+
+    return StreamingResponse(stream_response(), media_type="application/json")
 
 
 @api_router.get("/sessions")

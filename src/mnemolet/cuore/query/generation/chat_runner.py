@@ -9,6 +9,7 @@ def run_chat_turn(
     initial_messages=None,
     session_id=None,
     history_store=None,
+    stream: bool = True,
 ):
     """
     Run a single chat turn (user => assistant).
@@ -26,12 +27,16 @@ def run_chat_turn(
     if history_store and session_id:
         history_store.add_message(session_id, "user", user_input)
 
-    assistant_msg = ""
+    assistant_msg = []
     for chunk in session.ask(user_input):
-        assistant_msg += chunk
+        assistant_msg.append(chunk)
+        if stream:
+            yield chunk
+    answer = "".join(assistant_msg)
 
     # save assistant msg
     if history_store and session_id:
-        history_store.add_message(session_id, "assistant", assistant_msg)
+        history_store.add_message(session_id, "assistant", answer)
 
-    return assistant_msg
+    if not stream:
+        return answer
