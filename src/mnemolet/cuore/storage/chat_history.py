@@ -64,11 +64,15 @@ class ChatHistory(BaseSQLite):
             return cur.fetchall()
 
     def session_exists(self, session_id: int) -> bool:
+        """
+        Checks if a chat session with the given ID exists.
+        """
         with self._get_connection() as conn:
             cur = conn.execute(
-                "SELECT 1 FROM chat_sessions WHERE id = ?", (session_id,)
+                "SELECT COUNT(id) FROM chat_sessions WHERE id = ?", (session_id,)
             )
-            return cur.fetchone() is not None
+            count = cur.fetchone()[0]
+            return count > 0
 
     def delete_session(self, session_id: int):
         with self._get_connection() as conn:
