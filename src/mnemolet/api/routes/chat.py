@@ -4,13 +4,79 @@ from fastapi import (
     APIRouter,
     HTTPException,
     Query,
+    Request,
 )
 
+from mnemolet.config import (
+    EMBED_MODEL,
+    MIN_SCORE,
+    OLLAMA_MODEL,
+    OLLAMA_URL,
+    QDRANT_COLLECTION,
+    QDRANT_URL,
+    TOP_K,
+)
 from mnemolet.cuore.storage.chat_history import ChatHistory
 
 logger = logging.getLogger(__name__)
 
 api_router = APIRouter(prefix="/chat", tags=["chat"])
+
+
+@api_router.post("/sessions")
+def create_session():
+    h = ChatHistory()
+    session_id = h.create_session()
+    return {"session_id": session_id}
+
+
+@api_router.post("/sessions/{session_id}/messages")
+async def send_message(session_id: int, request: Request):
+    from mnemolet.cuore.query.generation.chat_session import ChatSession
+    from mnemolet.cuore.query.generation.local_generator import get_llm_generator
+    from mnemolet.cuore.query.retrieval.retriever import get_retriever
+
+    payload = await request.json()
+
+    if "message" not in payload:
+        raise HTTPException(status_code=400, detail="Missing 'message' field")
+
+    message = payload["message"]
+
+    h = ChatHistory()
+
+    if not h.session_exists(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # load previous messages from DB
+    # messages = h.get_messages(session_id)
+
+    retriever = get_retriever(
+        url=QDRANT_URL,
+        collection=QDRANT_COLLECTION,
+        model=EMBED_MODEL,
+        top_k=TOP_K,
+        min_score=MIN_SCORE,
+    )
+
+    generator = get_llm_generator(OLLAMA_URL, OLLAMA_MODEL)
+
+    session = ChatSession(
+        retriever=retriever,
+        generator=generator,
+    )
+
+    # save user msg
+    h.add_message(session_id, "user", message)
+
+    # generate assistant reply
+    assistant_msg = ""
+    for chunk in session.ask(message):
+        assistant_msg += chunk
+
+    h.add_message(session_id, "assistant", assistant_msg)
+
+    return {"assistant": assistant_msg}
 
 
 @api_router.get("/sessions")
