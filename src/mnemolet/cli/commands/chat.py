@@ -73,7 +73,6 @@ def start(ollama_url: str, top_k: int, ollama_model: str, min_score: float):
     history = ChatHistory()
     session_id = history.create_session()
     logger.info(f"Chat session started (id={session_id})\n")
-    click.echo("Starting chat. Type 'exit' to quit.\n")
 
     run_chat(
         retriever=retriever,
@@ -104,7 +103,7 @@ def replay(session_id):
         click.echo(f"No messages found for session {session_id}")
         return
 
-    formatted = [{"role": r, "messages": m} for r, m, _ in messages]
+    formatted = [{"role": r, "message": m} for r, m, _ in messages]
 
     # print previous session messages
     if messages:
@@ -138,17 +137,7 @@ def run_chat(
     session_id=None,
     history_store=None,
 ):
-    from mnemolet.cuore.query.generation.chat_session import ChatSession
-
-    session = ChatSession(
-        retriever=retriever,
-        generator=generator,
-    )
-
-    logger.debug(f"Initial messages: {initial_messages}")
-    if initial_messages:
-        for msg in initial_messages:
-            session.append_to_history(msg["role"], msg["messages"])
+    from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
 
     click.echo("Starting chat. Type 'exit' to quit.\n")
 
@@ -160,23 +149,19 @@ def run_chat(
                 click.echo("Bye")
                 break
 
-            # save user msg
-            if history_store and session_id:
-                history_store.add_message(session_id, "user", user_input)
-
             # stream response
             click.echo("assistant: ", nl=False)
-            assistant_msg = ""
 
-            for chunk in session.ask(user_input):
-                click.echo(chunk, nl=False)
-                assistant_msg += chunk
+            assistant_msg = run_chat_turn(
+                retriever=retriever,
+                generator=generator,
+                user_input=user_input,
+                initial_messages=initial_messages,
+                session_id=session_id,
+                history_store=history_store,
+            )
 
-            # save assistant msg
-            if history_store and session_id:
-                history_store.add_message(session_id, "assistant", assistant_msg)
-
-            click.echo()
+            click.echo(assistant_msg)
 
         except (KeyboardInterrupt, EOFError):
             click.echo("\n Exiting chat..")

@@ -70,3 +70,7 @@ class ChatSession:
 
         context += f"user: {query}\n"
         return context
+
+    def load_history(self, messages):
+        for m in messages:
+            self.append_to_history(m["role"], m["message"])

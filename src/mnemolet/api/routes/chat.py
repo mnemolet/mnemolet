@@ -32,7 +32,7 @@ def create_session():
 
 @api_router.post("/sessions/{session_id}/messages")
 async def send_message(session_id: int, request: Request):
-    from mnemolet.cuore.query.generation.chat_session import ChatSession
+    from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
     from mnemolet.cuore.query.generation.local_generator import get_llm_generator
     from mnemolet.cuore.query.retrieval.retriever import get_retriever
 
@@ -49,7 +49,7 @@ async def send_message(session_id: int, request: Request):
         raise HTTPException(status_code=404, detail="Session not found")
 
     # load previous messages from DB
-    # messages = h.get_messages(session_id)
+    initial_messages = h.get_messages(session_id)
 
     retriever = get_retriever(
         url=QDRANT_URL,
@@ -61,20 +61,14 @@ async def send_message(session_id: int, request: Request):
 
     generator = get_llm_generator(OLLAMA_URL, OLLAMA_MODEL)
 
-    session = ChatSession(
+    assistant_msg = run_chat_turn(
         retriever=retriever,
         generator=generator,
+        user_input=message,
+        initial_messages=initial_messages,
+        session_id=session_id,
+        history_store=h,
     )
-
-    # save user msg
-    h.add_message(session_id, "user", message)
-
-    # generate assistant reply
-    assistant_msg = ""
-    for chunk in session.ask(message):
-        assistant_msg += chunk
-
-    h.add_message(session_id, "assistant", assistant_msg)
 
     return {"assistant": assistant_msg}
 
