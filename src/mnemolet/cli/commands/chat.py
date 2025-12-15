@@ -45,20 +45,61 @@ chat.add_command(history)
 )
 @click.option(
     "--ollama-model",
-    default="llama3",
+    default=OLLAMA_MODEL,
     show_default=True,
     help="Local model to use for generation.",
 )
 @click.option(
     "--min-score", default=MIN_SCORE, show_default=True, help="Minimum score threshold."
 )
+@click.option(
+    "--session-id",
+    type=int,
+    default=None,
+    help="ID of a previous chat session to continue (replay).",
+)
 @requires_qdrant
-def start(ollama_url: str, top_k: int, ollama_model: str, min_score: float):
+def start(
+    ollama_url: str,
+    top_k: int,
+    ollama_model: str,
+    min_score: float,
+    session_id: int | None,
+):
     """
     Start interactive chat session with the local LLM.
     """
     from mnemolet.cuore.query.generation.local_generator import get_llm_generator
     from mnemolet.cuore.query.retrieval.retriever import get_retriever
+
+    h = ChatHistory()
+    initial_messages = None
+
+    if session_id is not None:
+        # === Replay logic ===
+        if not h.session_exists(session_id):
+            click.echo(f"There is no session: {session_id}")
+            return
+
+        messages = h.get_messages(session_id)
+
+        if not messages:
+            click.echo(f"No messages found for session {session_id}")
+            return
+
+        initial_messages = [{"role": r, "message": m} for r, m, _ in messages]
+
+        if messages:
+            click.echo("Loaded previous session history: \n")
+            for r, m, _ in messages:
+                click.echo(f"{r}: {m}\n")
+
+        logger.info(f"[CHAT]: Replaying chat session (id={session_id})")
+
+    else:
+        # === Start new session ===
+        session_id = h.create_session()
+        logger.info(f"Chat session started (id={session_id})\n")
 
     retriever = get_retriever(
         url=QDRANT_URL,
@@ -70,62 +111,10 @@ def start(ollama_url: str, top_k: int, ollama_model: str, min_score: float):
 
     generator = get_llm_generator(OLLAMA_URL, ollama_model)
 
-    history = ChatHistory()
-    session_id = history.create_session()
-    logger.info(f"Chat session started (id={session_id})\n")
-    click.echo("Starting chat. Type 'exit' to quit.\n")
-
     run_chat(
         retriever=retriever,
         generator=generator,
-        initial_messages=None,
-        session_id=session_id,
-        history_store=history,
-    )
-
-
-@chat.command("replay")
-@click.argument(
-    "session_id",
-    type=int,
-)
-@requires_qdrant
-def replay(session_id):
-    """
-    Continue a chat using messages from a previous session.
-    """
-    from mnemolet.cuore.query.generation.local_generator import get_llm_generator
-    from mnemolet.cuore.query.retrieval.retriever import get_retriever
-
-    h = ChatHistory()
-    messages = h.get_messages(session_id)
-
-    if not messages:
-        click.echo(f"No messages found for session {session_id}")
-        return
-
-    formatted = [{"role": r, "messages": m} for r, m, _ in messages]
-
-    # print previous session messages
-    if messages:
-        click.echo("Loaded previous session history: \n")
-        for r, m, _ in messages:
-            click.echo(f"{r}: {m}\n")
-
-    retriever = get_retriever(
-        url=QDRANT_URL,
-        collection=QDRANT_COLLECTION,
-        model=EMBED_MODEL,
-        top_k=TOP_K,
-        min_score=MIN_SCORE,
-    )
-
-    generator = get_llm_generator(OLLAMA_URL, OLLAMA_MODEL)
-
-    run_chat(
-        retriever=retriever,
-        generator=generator,
-        initial_messages=formatted,
+        initial_messages=initial_messages,
         session_id=session_id,
         history_store=h,
     )
@@ -138,17 +127,7 @@ def run_chat(
     session_id=None,
     history_store=None,
 ):
-    from mnemolet.cuore.query.generation.chat_session import ChatSession
-
-    session = ChatSession(
-        retriever=retriever,
-        generator=generator,
-    )
-
-    logger.debug(f"Initial messages: {initial_messages}")
-    if initial_messages:
-        for msg in initial_messages:
-            session.append_to_history(msg["role"], msg["messages"])
+    from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
 
     click.echo("Starting chat. Type 'exit' to quit.\n")
 
@@ -160,23 +139,19 @@ def run_chat(
                 click.echo("Bye")
                 break
 
-            # save user msg
-            if history_store and session_id:
-                history_store.add_message(session_id, "user", user_input)
-
             # stream response
             click.echo("assistant: ", nl=False)
-            assistant_msg = ""
 
-            for chunk in session.ask(user_input):
-                click.echo(chunk, nl=False)
-                assistant_msg += chunk
-
-            # save assistant msg
-            if history_store and session_id:
-                history_store.add_message(session_id, "assistant", assistant_msg)
-
-            click.echo()
+            for c in run_chat_turn(
+                retriever=retriever,
+                generator=generator,
+                user_input=user_input,
+                initial_messages=initial_messages,
+                session_id=session_id,
+                history_store=history_store,
+                stream=True,
+            ):
+                click.echo(c, nl=False)
 
         except (KeyboardInterrupt, EOFError):
             click.echo("\n Exiting chat..")

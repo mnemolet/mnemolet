@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from mnemolet.api.routes import api_router
+from mnemolet.api.app import api_router
 from mnemolet.ui.routes import ui_router
 
 app = FastAPI()
