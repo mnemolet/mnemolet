@@ -3,10 +3,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from mnemolet.api.app import (
-    do_ingestion,
     do_search,
     get_collections,
     get_stats,
+)
+from mnemolet.api.routes.ingest import (
+    do_ingestion,
 )
 from mnemolet.config import (
     OLLAMA_URL,
