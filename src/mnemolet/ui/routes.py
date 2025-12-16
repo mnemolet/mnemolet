@@ -117,3 +117,19 @@ async def answer_ui(request: Request):
     return templates.TemplateResponse(
         "answer.html", {"request": request, "results": None}
     )
+
+
+@ui_router.get("/chat", response_class=HTMLResponse)
+async def ls_sessions(request: Request):
+    from mnemolet.api.routes.chat import (
+        list_sessions,
+    )
+
+    data = list_sessions()
+    return templates.TemplateResponse(
+        "chat.html",
+        {
+            "request": request,
+            "sessions": data,
+        },
+    )

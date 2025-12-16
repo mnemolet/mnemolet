@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - MnemoLet{% endblock%}
+
+{% block content %}
+    <div class="flex h-full">
+        <!-- left panel: sessions -->
+        <aside class="w-64 h-full bg-white border-r flex flex-col">
+
+            <div class="p-4 font-semibold text-gray-700 border-b">
+                Sessions
+            </div>
+
+            <div class="flex-1 overflow-y-auto">
+            <ul>
+                {% for s in sessions %}
+                <li>
+                    <a
+                        href="chat/{{s.id}}"
+                        class="block px-4 py-2 hover:bg-gray-100"
+                    >
+                        {{ s.id }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            </div>
+        </aside>
+    
+        <!-- right panel: chat -->
+        <main class="flex-1 flex flex-col">
+            ...
+        </main>
+    </div>
+{% endblock %}
+
