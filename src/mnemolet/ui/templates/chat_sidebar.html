@@ -1,0 +1,27 @@
+<div class="p-4 border-b">
+    <a
+        href="chat/new"
+        class="block px-4 py-2 font-medium hover:bg-gray-100 transition"
+    >
+    + New chat
+    </a>
+</div>
+
+<div class="p-4 font-semibold text-gray-700 border-b">
+    Chats
+</div>
+
+<div class="flex-1 overflow-y-auto">
+<ul>
+    {% for s in sessions %}
+    <li>
+        <a
+            href="chat/{{s.id}}"
+            class="block px-4 py-2 hover:bg-gray-100"
+        >
+            {{ s.id }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+</div>
