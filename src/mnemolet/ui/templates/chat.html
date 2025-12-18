@@ -14,5 +14,94 @@
             {% include "chat_main.html" %}
         </main>
     </div>
-{% endblock %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("chat-form")
+  const messagesEl = document.getElementById("messages")
 
+  if (!form || !messagesEl) return
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault()
+    const textarea = form.querySelector("textarea")
+    const content = textarea.value.trim()
+    if (!content) return
+    textarea.value = ""
+
+    // show user message immediately
+    appendMessage("user", content)
+
+    // prepare payload
+    const payload = { message: content }
+    if (form.dataset.sessionId) payload.session_id = form.dataset.sessionId
+
+    const res = await fetch("/api/chat/sessions/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+
+    if (!res.ok) {
+      const text = await res.text()
+      console.error("API error:", text)
+      return
+    }
+
+    // streaming assistant reply
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ""
+    let assistantSpan = null
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split("\n")
+      buffer = lines.pop() // incomplete line
+
+      for (const line of lines) {
+        if (!line.trim()) continue
+        const data = JSON.parse(line)
+        if (data.type === "chunk") {
+          // create the assistant span once
+          if (!assistantSpan) {
+            assistantSpan = appendMessage("assistant", "")
+          }
+          // append chunk to the existing span
+          assistantSpan.textContent += data.data
+          // scroll to bottom
+          messagesEl.scrollTop = messagesEl.scrollHeight
+        }
+      }
+    }
+
+    // store session id for next messages
+    if (!form.dataset.sessionId && payload.session_id) {
+      form.dataset.sessionId = payload.session_id
+    }
+  })
+
+  // appendMessage helper returns the span for incremental updates
+  function appendMessage(role, content) {
+    const wrapper = document.createElement("div")
+    wrapper.className = role === "user" ? "text-right" : "text-left"
+
+    const span = document.createElement("span")
+    span.className = `
+      inline-block px-3 py-2 rounded
+      ${role === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}
+    `
+    span.textContent = content
+
+    wrapper.appendChild(span)
+    messagesEl.appendChild(wrapper)
+
+    // scroll to bottom
+    messagesEl.scrollTop = messagesEl.scrollHeight
+
+    return span
+  }
+})
+</script>
+{% endblock %}

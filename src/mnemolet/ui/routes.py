@@ -120,16 +120,18 @@ async def answer_ui(request: Request):
 
 
 @ui_router.get("/chat", response_class=HTMLResponse)
-async def ls_sessions(request: Request):
-    from mnemolet.api.routes.chat import (
-        list_sessions,
-    )
+def new_chat(request: Request):
+    from mnemolet.cuore.storage.chat_history import ChatHistory
 
-    data = list_sessions()
+    # create a session only when user sends a message
+    sessions = ChatHistory().list_sessions()
+    messages = []
     return templates.TemplateResponse(
         "chat.html",
         {
             "request": request,
-            "sessions": data,
+            "current_session": None,
+            "sessions": sessions,
+            "messages": messages,
         },
     )

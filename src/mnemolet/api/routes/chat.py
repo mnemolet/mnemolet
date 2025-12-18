@@ -31,8 +31,8 @@ def create_session():
     return {"session_id": session_id}
 
 
-@api_router.post("/sessions/{session_id}/messages")
-async def send_message(session_id: int, request: Request):
+@api_router.post("/sessions/messages")
+async def send_message(request: Request):
     import json
 
     from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
@@ -45,10 +45,12 @@ async def send_message(session_id: int, request: Request):
         raise HTTPException(status_code=400, detail="Missing 'message' field")
 
     message = payload["message"]
+    session_id = payload.get("session_id")  # optional
 
     h = ChatHistory()
-
-    if not h.session_exists(session_id):
+    if session_id is None:
+        session_id = h.create_session()
+    elif not h.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
     # load previous messages from DB
