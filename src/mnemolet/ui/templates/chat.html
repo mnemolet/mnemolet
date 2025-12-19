@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // prepare payload
     const payload = { message: content }
     if (form.dataset.sessionId) payload.session_id = form.dataset.sessionId
+    console.log(payload.session_id);
 
     const res = await fetch("/api/chat/sessions/messages", {
       method: "POST",
@@ -73,13 +74,14 @@ document.addEventListener("DOMContentLoaded", () => {
           // scroll to bottom
           messagesEl.scrollTop = messagesEl.scrollHeight
         }
+
+        // store session id for next messages
+        if (data.type === "done" && !form.dataset.sessionId) {
+          form.dataset.sessionId = data.session_id;
+        }
       }
     }
 
-    // store session id for next messages
-    if (!form.dataset.sessionId && payload.session_id) {
-      form.dataset.sessionId = payload.session_id
-    }
   })
 
   // appendMessage helper returns the span for incremental updates

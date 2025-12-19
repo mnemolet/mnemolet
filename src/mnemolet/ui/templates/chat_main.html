@@ -24,7 +24,7 @@
     <form 
         id="chat-form"
         class="p-4 border-t flex gap-2"
-        data-session-id="{{ current_session if current_session }}">
+        data-session-id="{{ current_session if current_session else '' }}">
         <textarea
             name="content"
             rows="1"

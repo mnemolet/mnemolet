@@ -66,20 +66,30 @@ async def send_message(request: Request):
 
     generator = get_llm_generator(OLLAMA_URL, OLLAMA_MODEL)
 
+    assistant_chunks = []
+
+    # save 1st user message
+    h.add_message(session_id, "user", message)
+
     def stream_response():
         for c in run_chat_turn(
             retriever=retriever,
             generator=generator,
             user_input=message,
-            initial_messages=initial_messages,
+            messages=initial_messages,
             session_id=session_id,
-            history_store=h,
             stream=True,
         ):
+            assistant_chunks.append(c)
             data = json.dumps({"type": "chunk", "data": c})
             yield f"{data}\n".encode("utf-8")
 
-        # yield json.dumps({"done": True}).encode("utf-8")
+        # save assistant message
+        full_msg = "".join(assistant_chunks).strip()
+        if full_msg:
+            h.add_message(session_id, "assistant", full_msg)
+        done = json.dumps({"type": "done", "session_id": session_id})
+        yield f"{done}\n".encode("utf-8")
 
     return StreamingResponse(stream_response(), media_type="application/json")
 

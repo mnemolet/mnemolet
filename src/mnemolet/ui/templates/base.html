@@ -3,14 +3,19 @@
     <head>
         {% include "head.html" %}
     </head>
-    <body>
+    <body class="h-screen overflow-hidden">
+        <div class="flex flex-col h-full">
 
-    {% include "nav.html" %}
+        <div class="shrink-0">
+            {% include "nav.html" %}
+        </div>
 
-    <main class="container mx-auto px-4">
-        {% block content %}{% endblock %}
-    </main>
+        <main class="flex-1 overflow-hidden">
+            {% block content %}{% endblock %}
+        </main>
 
-    {% include "footer.html" %}
+        <div class="shrink-0">
+            {% include "footer.html" %}
+        </div>
     </body>
 </html>
