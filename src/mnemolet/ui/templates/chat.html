@@ -77,7 +77,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // store session id for next messages
         if (data.type === "done" && !form.dataset.sessionId) {
-          form.dataset.sessionId = data.session_id;
+            form.dataset.sessionId = data.session_id;
+
+            // update session title
+            const title = document.getElementById("session-title");
+            if (title) {
+                title.textContent = `Session ${data.session_id}`;
+            }
+
+            // add to sidebar
+            const list = document.getElementById("sessions-list");
+            if (list) {
+                const li = document.createElement("li");
+                const a = document.createElement("a");
+                
+                a.href = `/chat/${data.session_id}`;
+                a.textContent = data.session_id;
+                a.className = "block px-4 py-2 hover:bg-gray-100";
+
+                li.appendChild(a);
+                list.prepend(li); // to the top
+            }
         }
       }
     }

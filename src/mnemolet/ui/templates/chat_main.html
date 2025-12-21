@@ -1,6 +1,6 @@
 <div class="flex flex-col h-full">
-    <div class="p-4 border-b font-semibold">
-        {{ current_session }}
+    <div id="session-title" class="p-4 border-b font-semibold">
+        {{ current_session or "New chat" }}
     </div>
 
     <div
