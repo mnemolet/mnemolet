@@ -1,6 +1,6 @@
 <div class="p-4 border-b">
     <a
-        href="chat/new"
+        href="/chat"
         class="block px-4 py-2 font-medium hover:bg-gray-100 transition"
     >
     + New chat
@@ -16,7 +16,7 @@
     {% for s in sessions %}
     <li>
         <a
-            href="chat/{{s.id}}"
+            href="/chat/{{s.id}}"
             class="block px-4 py-2 hover:bg-gray-100"
         >
             {{ s.id }}

@@ -68,7 +68,7 @@ async def send_message(request: Request):
 
     assistant_chunks = []
 
-    # save 1st user message
+    # save user message
     h.add_message(session_id, "user", message)
 
     def stream_response():
