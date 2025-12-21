@@ -16,8 +16,8 @@
     </div>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("chat-form")
-  const messagesEl = document.getElementById("messages")
+    const form = document.getElementById("chat-form");
+    const messagesEl = document.getElementById("messages");
 
   if (!form || !messagesEl) return
 
@@ -124,6 +124,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return span
   }
+
+    // === Menu toggle and outside click handling ===
+    document.addEventListener("click", (e) => {
+        const menuBtn = e.target.closest(".menu-toggle");
+        const menu = e.target.closest(".menu");
+
+        if (menuBtn) {
+            e.stopPropagation();
+        
+            const currentMenu = menuBtn.nextElementSibling;
+            const isOpen = !currentMenu.classList.contains("hidden");
+
+            document.querySelectorAll(".menu").forEach(m => m.classList.add("hidden"));
+
+            if (!isOpen) currentMenu.classList.remove("hidden");
+                return;
+        }
+
+        if (menu) return; // clicked inside menu, do nothing
+
+        // clicked outside
+        document.querySelectorAll(".menu").forEach(m => m.classList.add("hidden"));
+    });
+
 })
 </script>
 {% endblock %}
