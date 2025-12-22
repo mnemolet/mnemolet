@@ -18,6 +18,14 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("chat-form");
     const messagesEl = document.getElementById("messages");
+    const textarea = form.querySelector("textarea");
+
+    textarea.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && textarea.value.trim()) {
+        e.preventDefault();      // stop newline
+        form.requestSubmit();   // same as clicking "Send"
+      }
+    });
 
   if (!form || !messagesEl) return
 
@@ -88,15 +96,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // add to sidebar
             const list = document.getElementById("sessions-list");
             if (list) {
-                const li = document.createElement("li");
-                const a = document.createElement("a");
-                
-                a.href = `/chat/${data.session_id}`;
-                a.textContent = data.session_id;
-                a.className = "block px-4 py-2 hover:bg-gray-100";
-
-                li.appendChild(a);
-                list.prepend(li); // to the top
+              const li = createSessionItem(data.session_id);
+              list.prepend(li);
             }
         }
       }
@@ -104,50 +105,109 @@ document.addEventListener("DOMContentLoaded", () => {
 
   })
 
-  // appendMessage helper returns the span for incremental updates
-  function appendMessage(role, content) {
-    const wrapper = document.createElement("div")
-    wrapper.className = role === "user" ? "text-right" : "text-left"
+    function createSessionItem(sessionId) {
+        const li = document.createElement("li");
+        li.className =
+        "flex items-center justify-between px-4 py-2 hover:bg-gray-100 relative";
+        li.dataset.sessionId = sessionId;
 
-    const span = document.createElement("span")
-    span.className = `
-      inline-block px-3 py-2 rounded
-      ${role === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}
-    `
-    span.textContent = content
+        // link
+        const a = document.createElement("a");
+        a.href = `/chat/${sessionId}`;
+        a.textContent = sessionId;
+        a.className = "block px-4 py-2 hover:bg-gray-100";
 
-    wrapper.appendChild(span)
-    messagesEl.appendChild(wrapper)
+        // menu button
+        const button = document.createElement("button");
+        button.className =
+        "text-gray-500 hover:text-gray-800 focus:outline-none menu-toggle";
+        button.innerHTML = "&#x22EE;";
 
-    // scroll to bottom
-    messagesEl.scrollTop = messagesEl.scrollHeight
+        // menu
+        const menu = document.createElement("div");
+        menu.className =
+        "absolute right-4 top-full mt-1 hidden bg-white border rounded shadow-md w-32 z-10 menu";
 
-    return span
-  }
+        menu.innerHTML = `
+        <ul>
+          <li data-action="export" class="px-3 py-2 hover:bg-gray-200 cursor-pointer">Export</li>
+          <li data-action="rename" class="px-3 py-2 hover:bg-gray-200 cursor-pointer">Rename</li>
+          <li data-action="delete" class="px-3 py-2 hover:bg-gray-200 cursor-pointer">Delete</li>
+        </ul>
+        `;
+
+        li.appendChild(a);
+        li.appendChild(button);
+        li.appendChild(menu);
+
+        return li;
+    }
+
+    // appendMessage helper returns the span for incremental updates
+    function appendMessage(role, content) {
+        const wrapper = document.createElement("div")
+        wrapper.className = role === "user" ? "text-right" : "text-left"
+
+        const span = document.createElement("span")
+        span.className = `
+          inline-block px-3 py-2 rounded
+          ${role === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}
+        `
+        span.textContent = content
+
+        wrapper.appendChild(span)
+        messagesEl.appendChild(wrapper)
+
+        // scroll to bottom
+        messagesEl.scrollTop = messagesEl.scrollHeight
+
+        return span
+    }
 
     // === Menu toggle and outside click handling ===
     document.addEventListener("click", (e) => {
         const menuBtn = e.target.closest(".menu-toggle");
         const menu = e.target.closest(".menu");
+        const menuItem = e.target.closest(".menu [data-action]");
 
+        // === menu btn click
         if (menuBtn) {
+            e.preventDefault();
             e.stopPropagation();
         
             const currentMenu = menuBtn.nextElementSibling;
             const isOpen = !currentMenu.classList.contains("hidden");
 
-            document.querySelectorAll(".menu").forEach(m => m.classList.add("hidden"));
+            document.querySelectorAll(".menu").forEach(m => 
+                m.classList.add("hidden")
+            );
 
             if (!isOpen) currentMenu.classList.remove("hidden");
                 return;
         }
 
-        if (menu) return; // clicked inside menu, do nothing
+        // === menu item click
+        if (menuItem) {
+            e.stopPropagation();
+
+            const action = menuItem.dataset.action;
+            const sessionLi = menuItem.closest("li[data-session-id]");
+            const sessionId = sessionLi?.dataset.sessionId;
+
+            console.log("Menu action: ", action);
+            console.log("Session ID: ", sessionId);
+
+            // close menu after click
+            document.querySelectorAll(".menu").forEach( m => 
+                m.classList.add("hidden")
+            );
+        }
 
         // clicked outside
-        document.querySelectorAll(".menu").forEach(m => m.classList.add("hidden"));
+        document.querySelectorAll(".menu").forEach(m => 
+            m.classList.add("hidden")
+        );
     });
-
 })
 </script>
 {% endblock %}
