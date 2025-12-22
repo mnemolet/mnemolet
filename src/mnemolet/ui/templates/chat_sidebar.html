@@ -1,0 +1,46 @@
+<div class="p-4 border-b">
+    <a
+        href="/chat"
+        class="block px-4 py-2 font-medium hover:bg-gray-100 transition"
+    >
+    + New chat
+    </a>
+</div>
+
+<div class="p-4 font-semibold text-gray-700 border-b">
+    Chats
+</div>
+
+<div class="flex-1 overflow-y-auto">
+<ul id="sessions-list">
+    {% for s in sessions %}
+    <li class="flex items-center justify-between px-4 py-2 hover:bg-gray-100 relative"
+        data-session-id="{{ s.id }}">
+        <a
+            href="/chat/{{s.id}}"
+            class="block px-4 py-2 hover:bg-gray-100"
+        >
+            {{ s.id }}
+        </a>
+
+        <!-- 3 dots menu -->
+        <button class="text-gray-500 hover:text-gray-800 focus:outline-none menu-toggle">
+            &#x22EE; <!-- vertical ellipsis -->
+        </button>
+
+        <!-- menu -->
+        <div class="absolute right-4 top-full mt-1 hidden group-hover:block
+                    bg-white border rounded shadow-md w-32 z-10 menu">
+            <ul>
+                <li class="px-3 py-2 hover:bg-gray-200 cursor-pointer"
+                    data-action="export">Export</li>
+                <li class="px-3 py-2 hover:bg-gray-200 cursor-pointer"
+                    data-action="rename">Rename</li>
+                <li class="px-3 py-2 hover:bg-gray-200 cursor-pointer"
+                    data-action="delete">Delete</li>
+            </ul>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+</div>

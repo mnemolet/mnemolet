@@ -6,9 +6,8 @@ def run_chat_turn(
     retriever,
     generator,
     user_input: str,
-    initial_messages=None,
+    messages=None,
     session_id=None,
-    history_store=None,
     stream: bool = True,
 ):
     """
@@ -20,12 +19,12 @@ def run_chat_turn(
         generator=generator,
     )
 
-    if initial_messages:
-        session.load_history(initial_messages)
+    if messages:
+        session.load_history(messages)
 
     # save user msg
-    if history_store and session_id:
-        history_store.add_message(session_id, "user", user_input)
+    # if history_store and session_id:
+    #    history_store.add_message(session_id, "user", user_input)
 
     assistant_msg = []
     for chunk in session.ask(user_input):
@@ -35,8 +34,8 @@ def run_chat_turn(
     answer = "".join(assistant_msg)
 
     # save assistant msg
-    if history_store and session_id:
-        history_store.add_message(session_id, "assistant", answer)
+    # if history_store and session_id:
+    #     history_store.add_message(session_id, "assistant", answer)
 
     if not stream:
         return answer

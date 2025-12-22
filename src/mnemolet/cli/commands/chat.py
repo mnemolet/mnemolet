@@ -116,7 +116,7 @@ def start(
         generator=generator,
         initial_messages=initial_messages,
         session_id=session_id,
-        history_store=h,
+        history=h,
     )
 
 
@@ -125,7 +125,7 @@ def run_chat(
     generator,
     initial_messages=None,
     session_id=None,
-    history_store=None,
+    history=None,
 ):
     from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
 
@@ -142,16 +142,21 @@ def run_chat(
             # stream response
             click.echo("assistant: ", nl=False)
 
+            history.add_message(session_id, "user", user_input)
+
+            assistant_chunks = []
             for c in run_chat_turn(
                 retriever=retriever,
                 generator=generator,
                 user_input=user_input,
-                initial_messages=initial_messages,
+                messages=initial_messages,
                 session_id=session_id,
-                history_store=history_store,
                 stream=True,
             ):
+                assistant_chunks.append(c)
                 click.echo(c, nl=False)
+
+            history.add_message(session_id, "assistant", "".join(assistant_chunks))
 
         except (KeyboardInterrupt, EOFError):
             click.echo("\n Exiting chat..")

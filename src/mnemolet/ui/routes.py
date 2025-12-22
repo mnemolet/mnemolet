@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, Form, Request, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -116,4 +116,44 @@ async def search_ui_post(request: Request, query: str = Form(...)):
 async def answer_ui(request: Request):
     return templates.TemplateResponse(
         "answer.html", {"request": request, "results": None}
+    )
+
+
+@ui_router.get("/chat", response_class=HTMLResponse)
+def new_chat(request: Request):
+    from mnemolet.cuore.storage.chat_history import ChatHistory
+
+    # create a session only when user sends a message
+    sessions = ChatHistory().list_sessions()
+    messages = []
+    return templates.TemplateResponse(
+        "chat.html",
+        {
+            "request": request,
+            "current_session": None,
+            "sessions": sessions,
+            "messages": messages,
+        },
+    )
+
+
+@ui_router.get("/chat/{session_id}", response_class=HTMLResponse)
+def chat_session(request: Request, session_id: int):
+    from mnemolet.cuore.storage.chat_history import ChatHistory
+
+    h = ChatHistory()
+    if not h.session_exists(session_id):
+        raise HTTPException(status_code=404)
+
+    sessions = ChatHistory().list_sessions()
+    messages = h.get_messages(session_id)
+
+    return templates.TemplateResponse(
+        "chat.html",
+        {
+            "request": request,
+            "current_session": session_id,
+            "sessions": sessions,
+            "messages": messages,
+        },
     )
