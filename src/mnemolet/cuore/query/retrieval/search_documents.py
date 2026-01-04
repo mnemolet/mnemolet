@@ -12,8 +12,9 @@ def search_documents(
     xz = Qdrant(qdrant_url, collection_name, embed_model)
     try:
         return xz.search(query, top_k)
+
+    # collection does not exist
     except UnexpectedResponse as e:
-        # collection does not exist
         if e.status_code == 404:
             return []
         raise
