@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const a = document.createElement("a");
         a.href = `/chat/${sessionId}`;
         a.textContent = sessionId;
-        a.className = "block px-4 py-2 hover:bg-gray-100";
+        a.className = "session-title block px-4 py-2 hover:bg-gray-100";
 
         // menu button
         const button = document.createElement("button");
@@ -194,8 +194,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const sessionLi = menuItem.closest("li[data-session-id]");
             const sessionId = sessionLi?.dataset.sessionId;
 
+            if (action === "rename") {
+                e.preventDefault();
+                e.stopPropagation();
+                startRenameSession(sessionLi, sessionId);
+                return;
+            }
+
+            // ==> For Debug only
             console.log("Menu action: ", action);
             console.log("Session ID: ", sessionId);
+            // <==
 
             // close menu after click
             document.querySelectorAll(".menu").forEach( m => 
@@ -208,6 +217,51 @@ document.addEventListener("DOMContentLoaded", () => {
             m.classList.add("hidden")
         );
     });
+
+    function startRenameSession(li, sessionId, event) {
+        event?.preventDefault()
+        event?.stopPropagation()
+
+        // normalize target
+        li = li.closest("li")
+        if (!li) return
+
+        const link = li.querySelector(".session-title")
+        if (!link || li.querySelector("input")) return
+
+        const oldTitle = link.textContent.trim()
+        const linkClass = link.className
+
+        const input = document.createElement("input")
+        input.type = "text"
+        input.value = oldTitle
+        input.className = linkClass
+        input.style.width = "100%"
+        input.style.minWidth = "0"
+        input.style.flex = "1"
+
+        link.replaceWith(input)
+        input.focus()
+        input.select()
+
+        const finish = (save) => {
+        const newLink = document.createElement("a")
+        newLink.href = `/chat/${sessionId}`
+        newLink.className = linkClass
+        newLink.textContent = save ? input.value.trim() || oldTitle : oldTitle
+        input.replaceWith(newLink)
+        }
+
+        input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") finish(true)
+        if (e.key === "Escape") finish(false)
+        })
+
+        setTimeout(() => {
+        input.addEventListener("blur", () => finish(true))
+        }, 0)
+    }
+
 })
 </script>
 {% endblock %}
