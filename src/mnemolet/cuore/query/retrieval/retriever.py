@@ -20,19 +20,25 @@ class Retriever:
         self.cfg = config
         self._probed = False
         self._has_docs = True
+        self._disabled = False
 
     def retrieve(self, query: str) -> list[dict]:
         """
         Retrieve and filter context chunks from Qdrant.
         """
-        results = search_documents(
-            self.cfg.qdrant_url,
-            self.cfg.collection_name,
-            self.cfg.embed_model,
-            query,
-            self.cfg.top_k,
-        )
-        return filter_by_min_score(results, self.cfg.min_score)
+        try:
+            results = search_documents(
+                self.cfg.qdrant_url,
+                self.cfg.collection_name,
+                self.cfg.embed_model,
+                query,
+                self.cfg.top_k,
+            )
+            self._disabled = False
+            return filter_by_min_score(results, self.cfg.min_score)
+        except Exception:
+            self._disabled = True
+            return []
 
     def has_documents(self) -> bool:
         if not self._probed:

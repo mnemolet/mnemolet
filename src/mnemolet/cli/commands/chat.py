@@ -14,8 +14,6 @@ from mnemolet.config import (
 )
 from mnemolet.cuore.storage.chat_history import ChatHistory
 
-from .utils import requires_qdrant
-
 logger = logging.getLogger(__name__)
 
 
@@ -58,7 +56,6 @@ chat.add_command(history)
     default=None,
     help="ID of a previous chat session to continue (replay).",
 )
-@requires_qdrant
 def start(
     ollama_url: str,
     top_k: int,
