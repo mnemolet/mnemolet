@@ -5,6 +5,7 @@ from .base import BaseSQLite
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT 'New Chat',
     created_at TEXT NOT NULL
 );
 
@@ -59,7 +60,7 @@ class ChatHistory(BaseSQLite):
     def list_sessions(self):
         with self._get_connection() as conn:
             cur = conn.execute(
-                "SELECT id, created_at FROM chat_sessions ORDER BY id DESC"
+                "SELECT id, title, created_at FROM chat_sessions ORDER BY id DESC"
             )
             return cur.fetchall()
 
@@ -86,3 +87,15 @@ class ChatHistory(BaseSQLite):
         with self._get_connection() as conn:
             conn.execute("DELETE FROM chat_messages")
             conn.execute("DELETE FROM chat_sessions")
+
+    def rename_session(self, session_id: int, title: str):
+        with self._get_connection() as conn:
+            cur = conn.execute(
+                "UPDATE chat_sessions SET title = ? WHERE id = ?",
+                (
+                    title,
+                    session_id,
+                ),
+            )
+            conn.commit()
+            return cur.rowcount > 0

@@ -18,6 +18,8 @@ class RetrieverConfig:
 class Retriever:
     def __init__(self, config: RetrieverConfig):
         self.cfg = config
+        self._probed = False
+        self._has_docs = True
 
     def retrieve(self, query: str) -> list[dict]:
         """
@@ -31,6 +33,12 @@ class Retriever:
             self.cfg.top_k,
         )
         return filter_by_min_score(results, self.cfg.min_score)
+
+    def has_documents(self) -> bool:
+        if not self._probed:
+            self._has_docs = bool(self.retrieve("__probe__"))
+            self.probed = True
+        return self._has_docs
 
 
 def get_retriever(

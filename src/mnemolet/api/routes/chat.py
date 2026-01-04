@@ -122,3 +122,29 @@ def prune_session(confirm: bool = Query(False)):
         )
     h = ChatHistory()
     h.delete_all_sessions()
+
+
+@api_router.patch("/sessions/{session_id}")
+async def rename_chat_session(request: Request, session_id: int):
+    data = await request.json()
+
+    title = (data.get("title") or "").strip()
+
+    if not title:
+        raise HTTPException(status_code=400, detail="Title cannot be empty")
+
+    if len(title) > 50:
+        raise HTTPException(status_code=400, detail="Title too long (max 50 chars)")
+
+    h = ChatHistory()
+
+    if not h.session_exists(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    h.rename_session(session_id, title)
+
+    return {
+        "status": "ok",
+        "session_id": session_id,
+        "title": title,
+    }

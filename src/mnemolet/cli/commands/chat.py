@@ -129,6 +129,9 @@ def run_chat(
 ):
     from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
 
+    if retriever and not retriever.has_documents():
+        click.echo("No documents indexed yet - chatting without context!")
+
     click.echo("Starting chat. Type 'exit' to quit.\n")
 
     while True:
