@@ -131,6 +131,7 @@ def new_chat(request: Request):
         {
             "request": request,
             "current_session": None,
+            "current_session_title": None,
             "sessions": sessions,
             "messages": messages,
         },
@@ -148,11 +149,17 @@ def chat_session(request: Request, session_id: int):
     sessions = ChatHistory().list_sessions()
     messages = h.get_messages(session_id)
 
+    current_session_title = next(
+        (s["title"] for s in sessions if s["id"] == session_id),
+        "New chat",
+    )
+
     return templates.TemplateResponse(
         "chat.html",
         {
             "request": request,
             "current_session": session_id,
+            "current_session_title": current_session_title,
             "sessions": sessions,
             "messages": messages,
         },

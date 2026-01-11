@@ -200,6 +200,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 startRenameSession(sessionLi, sessionId);
                 return;
             }
+            
+            if (action === "delete") {
+                e.preventDefault();
+                e.stopPropagation();
+                deleteSession(sessionId);
+                return;
+            }
 
             // ==> For Debug only
             console.log("Menu action: ", action);
@@ -280,6 +287,54 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             input.addEventListener("blur", () => finish(true))
         }, 0)
+    }
+
+
+    async function deleteSession(sessionId, event) {
+        event?.preventDefault()
+        event?.stopPropagation()
+
+        const li = document.querySelector(`li[data-session-id="${sessionId}"]`)
+        const titleEl = li?.querySelector(".session-title")
+        const sessionTitle = titleEl?.textContent?.trim() || "Unnamed session"
+
+        const confirmed = window.confirm(
+        `Are you sure you want to delete the session:\n\n` +
+        `"${sessionTitle}" (ID: ${sessionId})\n\n` +
+        `This action cannot be undone.`)
+
+        if (!confirmed) return
+
+        try {
+        const resp = await fetch(`/api/chat/sessions/${sessionId}`, {
+            method: "DELETE",
+            headers: {
+            "Accept": "application/json",
+            },
+        })
+
+            if (!resp.ok) {
+                if (resp.status === 404) {
+                    alert("Session not found.")
+                } else {
+                    throw new Error(`Failed with status ${resp.status}`)
+                }
+                return
+            }
+
+            // Remove session from UI
+            const li = document.querySelector(`li[data-session-id="${sessionId}"]`)
+            li?.remove()
+
+            // Redirect if user deleted currently open session
+            if (window.location.pathname === `/chat/${sessionId}`) {
+                window.location.href = "/chat"
+            }
+
+        } catch (err) {
+            console.error("Delete session failed:", err)
+            alert("Failed to delete session. Please try again.")
+        }
     }
 
 })
