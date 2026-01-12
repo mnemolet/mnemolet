@@ -47,6 +47,17 @@ class ChatHistory(BaseSQLite):
                 (session_id, role, message),
             )
 
+    def get_session(self, session_id: int):
+        with self._get_connection() as conn:
+            cur = conn.execute(
+                """SELECT id, title, created_at
+                    FROM chat_sessions
+                    WHERE id = ?""",
+                (session_id,),
+            )
+            row = cur.fetchone()
+            return self._row_to_dict(row)
+
     def get_messages(self, session_id: int):
         with self._get_connection() as conn:
             cur = conn.execute(
@@ -55,7 +66,8 @@ class ChatHistory(BaseSQLite):
                 WHERE session_id = ? ORDER BY id""",
                 (session_id,),
             )
-            return cur.fetchall()
+            rows = cur.fetchall()
+            return self._rows_to_dicts(rows)
 
     def list_sessions(self):
         with self._get_connection() as conn:
@@ -99,3 +111,9 @@ class ChatHistory(BaseSQLite):
             )
             conn.commit()
             return cur.rowcount > 0
+
+    def _row_to_dict(self, row):
+        return dict(row) if row else None
+
+    def _rows_to_dicts(self, rows):
+        return [dict(r) for r in rows]

@@ -192,6 +192,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 deleteSession(sessionId);
                 return;
             }
+            
+            if (action === "export") {
+                e.preventDefault();
+                e.stopPropagation();
+                exportSession(sessionId);
+                return;
+            }
 
             // ==> For Debug only
             console.log("Menu action: ", action);
