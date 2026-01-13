@@ -5,6 +5,7 @@ from fastapi import (
     HTTPException,
     Query,
     Request,
+    Response,
 )
 from fastapi.responses import StreamingResponse
 
@@ -18,6 +19,7 @@ from mnemolet.config import (
     TOP_K,
 )
 from mnemolet.cuore.storage.chat_history import ChatHistory
+from mnemolet.cuore.utils.export_session import export_session
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +102,34 @@ def list_sessions():
 
 
 @api_router.get("/sessions/{session_id}")
-def show_session(session_id: int):
+def show_session(
+    session_id: int,
+    format: str = Query("json", enum=["json", "text"]),
+):
     h = ChatHistory()
-    return h.get_messages(session_id)
+    session = h.get_session(session_id)
+    messages = h.get_messages(session_id)
+
+    if not h.session_exists(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    output = export_session(
+        session=session,
+        messages=messages,
+        fmt=format,
+    )
+
+    if format == "text":
+        return Response(
+            content=output,
+            media_type="text/plain; charset=utf-8",
+        )
+
+    # json
+    return Response(
+        content=output,
+        media_type="application/json",
+    )
 
 
 @api_router.delete("/sessions/{session_id}", status_code=204)
