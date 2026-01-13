@@ -1,5 +1,3 @@
-console.log("chat.js loaded");
-
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("chat-form");
     const messagesEl = document.getElementById("messages");
@@ -192,6 +190,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 deleteSession(sessionId);
                 return;
             }
+            
+            if (action === "export") {
+                e.preventDefault();
+                e.stopPropagation();
+                exportSession(sessionId);
+                return;
+            }
 
             // ==> For Debug only
             console.log("Menu action: ", action);
@@ -320,6 +325,76 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Delete session failed:", err)
             alert("Failed to delete session. Please try again.")
         }
+    }
+
+    function exportSession(sessionId) {
+        // Remove existing dialog if any
+        const existing = document.getElementById("export-dialog");
+        if (existing) existing.remove();
+
+        // Overlay
+        const overlay = document.createElement("div");
+        overlay.id = "export-dialog";
+        overlay.className =
+            "fixed inset-0 bg-black/50 flex items-center justify-center z-50";
+
+        // Dialog
+        const dialog = document.createElement("div");
+        dialog.className =
+            "bg-white rounded-lg shadow-lg w-96 p-6";
+
+        dialog.innerHTML = `
+            <h2 class="text-lg font-semibold mb-4">Export chat session</h2>
+
+            <div class="space-y-2 mb-4">
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="export-format" value="text" checked>
+                    Plain text
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="export-format" value="json">
+                    JSON
+                </label>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button id="export-cancel"
+                    class="px-4 py-2 border rounded hover:bg-gray-100">
+                    Cancel
+                </button>
+                <button id="export-confirm"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Export
+                </button>
+            </div>
+        `;
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // Cancel
+        dialog.querySelector("#export-cancel").onclick = () => {
+            overlay.remove();
+        };
+
+        // Export
+        dialog.querySelector("#export-confirm").onclick = () => {
+            const format = dialog.querySelector(
+                'input[name="export-format"]:checked'
+            ).value;
+
+            const url = `/api/chat/sessions/${sessionId}?format=${format}`;
+
+            // Create invisible download link
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `chat-session-${sessionId}.${format === "json" ? "json" : "txt"}`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            overlay.remove();
+        };
     }
 
 })

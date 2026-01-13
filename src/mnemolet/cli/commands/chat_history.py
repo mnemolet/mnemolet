@@ -1,6 +1,7 @@
 import click
 
 from mnemolet.cuore.storage.chat_history import ChatHistory
+from mnemolet.cuore.utils.export_session import export_session
 
 
 @click.group("history")
@@ -23,19 +24,22 @@ def list_history():
 
 @history.command("show", help="Show chat session by ID.")
 @click.argument("session_id", type=int, required=True)
-def show(session_id):
+@click.option("--json", "as_json", is_flag=True, help="Output session in JSON")
+def show(session_id, as_json):
     h = ChatHistory()
+    session = h.get_session(session_id)
     messages = h.get_messages(session_id)
 
     if not messages:
         click.echo(f"No messages found for session {session_id}.")
         return
 
-    click.echo(f"=== Chat Session {session_id} ===")
-    for m in messages:
-        role = "You" if m["role"] == "user" else "Assistant"
-        ts = m["created_at"]
-        click.echo(f"[{ts}] {role}: {m['message']}")
+    output = export_session(
+        session=session,
+        messages=messages,
+        fmt="json" if as_json else "text",
+    )
+    click.echo(output)
 
 
 @history.command("rm", help="Remove chat session by ID.")
