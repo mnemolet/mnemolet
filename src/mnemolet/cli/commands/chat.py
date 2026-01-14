@@ -7,6 +7,7 @@ from mnemolet.config import (
     EMBED_MODEL,
     MIN_SCORE,
     OLLAMA_MODEL,
+    OLLAMA_PROMPT,
     OLLAMA_URL,
     QDRANT_COLLECTION,
     QDRANT_URL,
@@ -106,7 +107,11 @@ def start(
         min_score=min_score,
     )
 
-    generator = get_llm_generator(OLLAMA_URL, ollama_model)
+    generator = get_llm_generator(
+        OLLAMA_URL,
+        ollama_model,
+        OLLAMA_PROMPT,
+    )
 
     run_chat(
         retriever=retriever,

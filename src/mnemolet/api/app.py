@@ -15,6 +15,7 @@ from mnemolet.config import (
     EMBED_MODEL,
     MIN_SCORE,
     OLLAMA_MODEL,
+    OLLAMA_PROMPT,
     OLLAMA_URL,
     QDRANT_COLLECTION,
     QDRANT_URL,
@@ -115,7 +116,7 @@ def get_answer(
             top_k=top_k,
             min_score=MIN_SCORE,
         )
-        generator = get_llm_generator(OLLAMA_URL, ollama_model)
+        generator = get_llm_generator(OLLAMA_URL, ollama_model, OLLAMA_PROMPT)
 
         for chunk, sources in generate_answer(
             retriever=retriever,

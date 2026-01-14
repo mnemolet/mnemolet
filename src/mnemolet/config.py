@@ -38,6 +38,7 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST", config["ollama"]["host"])
 OLLAMA_PORT = int(os.getenv("OLLAMA_PORT", config["ollama"].get("port", 11434)))
 OLLAMA_URL = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}"
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", config["ollama"]["model"])
+OLLAMA_PROMPT = os.getenv("OLLAMA_PROMPT", config["ollama"]["prompt"])
 
 DB_PATH = Path(os.path.expanduser(config["storage"]["db_path"]))
 

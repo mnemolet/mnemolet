@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class LocalGeneratorConfig:
     url: str
     model: str
+    prompt: str
 
 
 class LocalGenerator:
@@ -28,11 +29,27 @@ class LocalGenerator:
         """
         Generate an answer.
         """
-        # if not context_chunks:
-        #    return "No relevant context found."
+        if not context_chunks:
+            context = (
+                "No additional context provided. Answer using your general knowledge."
+            )
+        else:
+            context = "\n\n".join(context_chunks)
 
-        context = "\n\n".join(context_chunks)
-        prompt = f"Context:\n{context}\n\nQuestion:\n{query}\n\nAnswer concisely:"
+        # prompt = f"Context:\n{context}\n\nQuestion:\n{query}\n\n:"
+        prompt = f"""
+        {self.cfg.prompt}
+
+        ### Reference context
+        {context}
+
+        ---
+
+        ### Question
+        {query}
+
+        ### Assitant Response:
+        """
 
         payload = {
             "model": self.cfg.model,
@@ -71,9 +88,10 @@ class LocalGenerator:
             raise RuntimeError(f"Failed to generate answer: {e}") from e
 
 
-def get_llm_generator(url: str, model: str) -> LocalGenerator:
+def get_llm_generator(url: str, model: str, prompt: str) -> LocalGenerator:
     cfg = LocalGeneratorConfig(
         url=url,
         model=model,
+        prompt=prompt,
     )
     return LocalGenerator(cfg)
