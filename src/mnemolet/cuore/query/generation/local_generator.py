@@ -64,7 +64,7 @@ class LocalGenerator:
             )
             response.raise_for_status()  # raise for non 200 status
 
-            for line in response.iter_lines(decode_unicode=True, chunk_size=1):
+            for line in response.iter_lines(decode_unicode=True):
                 if not line:
                     continue
 
