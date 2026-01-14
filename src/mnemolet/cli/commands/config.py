@@ -4,32 +4,10 @@ from pathlib import Path
 
 import click
 
-DEFAULT_CONFIG = {
-    "qdrant": {
-        "host": "localhost",
-        "port": 6333,
-        "collection": "documents",
-        "top_k": 5,
-        "min_score": 0.35,
-    },
-    "ingestion": {
-        "batch_size": 100,
-        "chunk_size": 1048576,
-        "size_chars": 3000,
-    },
-    "embedding": {
-        "model": "all-MiniLM-L6-v2",
-        "batch_size": 100,
-    },
-    "ollama": {"host": "localhost", "port": 11434, "model": "llama3"},
-    "storage": {
-        "db_path": "./data/tracker.sqlite",
-        "upload_dir": "./data/uploads",
-    },
-}
+from mnemolet.config import DEFAULT_CONFIG
 
 
-@click.command("init-config")
+@click.command("reset-config")
 @click.option("--path", default="config.toml", help="Path to save config file.")
 @click.option(
     "--force",

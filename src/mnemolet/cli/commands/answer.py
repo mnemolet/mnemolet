@@ -5,6 +5,7 @@ import click
 from mnemolet.config import (
     EMBED_MODEL,
     MIN_SCORE,
+    OLLAMA_PROMPT,
     OLLAMA_URL,
     QDRANT_COLLECTION,
     QDRANT_URL,
@@ -58,7 +59,11 @@ def answer(
         min_score=min_score,
     )
 
-    generator = get_llm_generator(url=OLLAMA_URL, model=ollama_model)
+    generator = get_llm_generator(
+        url=OLLAMA_URL,
+        model=ollama_model,
+        prompt=OLLAMA_PROMPT,
+    )
 
     click.echo("Generating answer..")
 
