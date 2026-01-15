@@ -85,12 +85,13 @@ def start(
             click.echo(f"No messages found for session {session_id}")
             return
 
-        initial_messages = [{"role": r, "message": m} for r, m, _ in messages]
+        initial_messages = [{"role": msg["role"],
+                             "message": msg["message"]} for msg in messages]
 
         if messages:
             click.echo("Loaded previous session history: \n")
-            for r, m, _ in messages:
-                click.echo(f"{r}: {m}\n")
+            for msg in initial_messages:
+                click.echo(f"{msg['role']}: {msg['message']}\n")
 
         logger.info(f"[CHAT]: Replaying chat session (id={session_id})")
 
