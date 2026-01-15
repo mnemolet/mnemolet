@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     textarea.value = ""
 
     // show user message immediately
-    appendMessage("user", content)
+    appendMessage("user", content, new Date().toISOString());
 
     // prepare payload
     const payload = { message: content }
@@ -58,7 +58,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.type === "chunk") {
           // create the assistant span once
           if (!assistantSpan) {
-            assistantSpan = appendMessage("assistant", "")
+            assistantSpan = appendMessage(
+                "assistant",
+                "",
+                new Date().toISOString()
+            )
           }
           // append chunk to the existing span
           assistantSpan.textContent += data.data
@@ -127,24 +131,45 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // appendMessage helper returns the span for incremental updates
-    function appendMessage(role, content) {
-        const wrapper = document.createElement("div")
-        wrapper.className = role === "user" ? "text-right" : "text-left"
+    function appendMessage(role, content, createdAt = null) {
+        const wrapper = document.createElement("div");
+        wrapper.className = `
+            flex flex-col mb-2
+            ${role === "user" ? "items-end text-right" : "items-start text-left"}
+        `;
 
-        const span = document.createElement("span")
-        span.className = `
-          inline-block px-3 py-2 rounded
-          ${role === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}
-        `
-        span.textContent = content
+        // actual message
+        const bubble = document.createElement("span");
+        bubble.className = `
+            inline-block px-3 py-2 rounded max-w-[80%] whitespace-pre-wrap
+            ${role === "user" 
+                ? "bg-blue-600 text-white" 
+                : "bg-gray-200 text-gray-800"}
+        `;
+        bubble.textContent = content;
 
-        wrapper.appendChild(span)
-        messagesEl.appendChild(wrapper)
+        wrapper.appendChild(bubble);
+
+        // add timestamp
+        if (createdAt) {
+            const ts = document.createElement("div");
+            ts.className = "text-xs text-gray-400 mt-1";
+            ts.textContent = formatTimestamp(createdAt);
+            wrapper.appendChild(ts);
+        }
+
+        messagesEl.appendChild(wrapper);
 
         // scroll to bottom
-        messagesEl.scrollTop = messagesEl.scrollHeight
+        messagesEl.scrollTop = messagesEl.scrollHeight;
 
-        return span
+        return bubble;
+    }
+
+    function formatTimestamp(value) {
+        const d = new Date(value);
+        if (isNaN(d)) return value; // fallback if backend sends plain text
+        return d.toLocaleString();
     }
 
     // === Menu toggle and outside click handling ===

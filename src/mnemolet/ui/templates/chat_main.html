@@ -17,6 +17,12 @@
                 ">
                  {{ m.message }}
                 </span>
+
+                {% if m.created_at %}
+                    <div class="text-xs text-gray-400 mt-1">
+                        {{ m.created_at }}
+                    </div>
+                {% endif %}
             </div>
         {% endfor %}
     </div>
