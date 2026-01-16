@@ -135,13 +135,21 @@ def run_chat(
     if retriever and not retriever.has_documents():
         click.echo("No documents indexed yet - chatting without context!")
 
-    click.echo("Starting chat. Type 'exit' to quit.\n")
+    click.echo("Starting chat. Type '/help' for help and '/quit' to quit.\n")
 
     while True:
         try:
             user_input = click.prompt("> ", type=str)
 
-            if user_input.lower() in ("exit", "quit", ":q"):
+            if user_input.lower() in ("/help", "/h"):
+                click.echo(
+                    "Available commands:\n"
+                    "  /help, /h   Show this help message\n"
+                    "  /quit, /q   Exit the chat"
+                )
+                continue
+
+            if user_input.lower() in ("/quit", "/q"):
                 click.echo("Bye")
                 break
 
