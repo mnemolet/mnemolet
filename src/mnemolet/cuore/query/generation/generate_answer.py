@@ -25,7 +25,7 @@ def generate_answer(
     # ------- Answer mode -------
     if not chat:
         if not filtered_results:
-            yield "No relevant documents found. Using general knowledge...\n\n", None 
+            yield "No relevant documents found. Using general knowledge...\n\n", None
 
         # generator = LocalGenerator(ollama_url, model)
         context_chunks = [r["text"] for r in filtered_results]

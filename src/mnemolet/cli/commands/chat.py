@@ -85,8 +85,9 @@ def start(
             click.echo(f"No messages found for session {session_id}")
             return
 
-        initial_messages = [{"role": msg["role"],
-                             "message": msg["message"]} for msg in messages]
+        initial_messages = [
+            {"role": msg["role"], "message": msg["message"]} for msg in messages
+        ]
 
         if messages:
             click.echo("Loaded previous session history: \n")

@@ -3,9 +3,27 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy.orm import declarative_base
+
 from mnemolet.cuore.storage.base import BaseSQLite
 
 logger = logging.getLogger(__name__)
+
+Base = declarative_base()
+
+
+class FileRecord(Base):
+    """SQLAlchemy ORM model for files table"""
+
+    __tablename__ = "files"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    path = Column(String, unique=True, nullable=False)
+    hash = Column(String, nullable=False)
+    ingested_at = Column(DateTime(timezone=True), nullable=False)
+    indexed = Column(Boolean, default=False, nullable=False)
+
 
 CREATE_TABLE_FILES = """
 CREATE TABLE IF NOT EXISTS files (
