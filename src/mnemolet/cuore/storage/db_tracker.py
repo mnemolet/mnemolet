@@ -4,19 +4,18 @@ from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import (
-        Boolean,
-        Column,
-        DateTime,
-        Integer,
-        String,
-        select,
-        event,
-        create_engine
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    String,
+    create_engine,
+    event,
+    select,
 )
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-from mnemolet.cuore.storage.base import BaseSQLite
 from mnemolet.config import DB_PATH
 
 logger = logging.getLogger(__name__)
@@ -36,18 +35,7 @@ class FileRecord(Base):
     indexed = Column(Boolean, default=False, nullable=False)
 
 
-CREATE_TABLE_FILES = """
-CREATE TABLE IF NOT EXISTS files (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT UNIQUE,
-    hash TEXT,
-    ingested_at TEXT,
-    indexed INTEGER DEFAULT 0
-);
-"""
-
-
-class DBTracker(BaseSQLite):
+class DBTracker:
     def __init__(self, db_path: Optional[Path] = None):
         self.db_path = db_path or DB_PATH
 
@@ -62,8 +50,8 @@ class DBTracker(BaseSQLite):
             echo=False,
             connect_args={
                 "check_same_thread": False,
-                "timeout": 30  # add timeout for concurrent access
-            }
+                "timeout": 30,  # add timeout for concurrent access
+            },
         )
 
         # Configure session factory
@@ -71,10 +59,10 @@ class DBTracker(BaseSQLite):
             bind=self.engine,
             autocommit=False,
             autoflush=False,
-            expire_on_commit=False  # for better performance
+            expire_on_commit=False,  # for better performance
         )
 
-         # Enable WAL mode and foreign keys
+        # Enable WAL mode and foreign keys
         self._configure_sqlite()
 
         # Create tables
@@ -82,6 +70,7 @@ class DBTracker(BaseSQLite):
 
     def _configure_sqlite(self):
         """Configure SQLite with WAL mode and foreign keys."""
+
         @event.listens_for(self.engine, "connect")
         def set_sqlite_pragma(dbapi_connection, connection_record):
             """Set PRAGMAs on SQLite connection."""
@@ -121,13 +110,15 @@ class DBTracker(BaseSQLite):
                         path=path,
                         hash=file_hash,
                         ingested_at=datetime.now(UTC),
-                        indexed=False
+                        indexed=False,
                     )
                     session.add(file_record)
                     session.commit()
                     logger.debug(f"Added file: {path}")
                 else:
-                    logger.debug(f"File already exists with hash {file_hash}: {existing.path}")
+                    logger.debug(
+                        f"File already exists with hash {file_hash}: {existing.path}"
+                    )
 
             except SQLAlchemyError as e:
                 session.rollback()
@@ -137,27 +128,76 @@ class DBTracker(BaseSQLite):
     def file_exists(self, file_hash: str) -> bool:
         """
         Check if file with this hash is already in db.
-        """
-        with self._get_connection() as conn:
-            curr = conn.execute("SELECT 1 FROM files WHERE hash = ?", (file_hash,))
-            return curr.fetchone() is not None
 
-    def mark_indexed(self, file_hash: str):
+        Args:
+            file_hash: File hash to check
+
+        Returns:
+            True if file exists, False otherwise
         """
-        Mark file as indexed is Qdrant.
+        with self.get_session() as session:
+            try:
+                result = session.execute(
+                    select(FileRecord).where(FileRecord.hash == file_hash)
+                ).scalar_one_or_none()
+                return result is not None
+            except SQLAlchemyError as e:
+                logger.error(f"Error checking file existence {file_hash}: {e}")
+                return False
+
+    def mark_indexed(self, file_hash: str) -> None:
         """
-        with self._get_connection() as conn:
-            conn.execute("UPDATE files SET indexed = 1 WHERE hash = ?", (file_hash,))
+        Mark file as indexed in Qdrant.
+
+        Args:
+            file_hash: Hash of file to mark as indexed
+        """
+        with self.get_session() as session:
+            try:
+                result = session.execute(
+                    select(FileRecord).where(FileRecord.hash == file_hash)
+                ).scalar_one_or_none()
+
+                if result:
+                    result.indexed = True
+                    session.commit()
+                    logger.debug(f"Marked file as indexed: {file_hash}")
+                else:
+                    logger.warning(f"File not found for marking indexed: {file_hash}")
+
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error marking file as indexed {file_hash}: {e}")
+                raise
 
     def list_files(self, indexed: Optional[bool] = None) -> list[dict]:
         """
-        List all tracked files, can be optionally filtered by indexed status.
+        List all tracked files, optionally filtered by indexed status.
+
+        Args:
+            indexed: If True/False, filter by indexed status. If None, return all.
+
+        Returns:
+            List of dictionaries containing file information
         """
-        query = "SELECT path, hash, ingested_at, indexed FROM files"
-        params = ()
-        if indexed is not None:
-            query += " WHERE indexed = ?"
-            params = (1 if indexed else 0,)
-        with self._get_connection() as conn:
-            rows = conn.execute(query, params).fetchall()
-            return [dict(row) for row in rows]
+        with self.get_session() as session:
+            try:
+                query = select(FileRecord)
+                if indexed is not None:
+                    query = query.where(FileRecord.indexed == indexed)
+                results = session.execute(query).scalars().all()
+
+                return [
+                    {
+                        "id": record.id,
+                        "path": record.path,
+                        "hash": record.hash,
+                        "ingested_at": record.ingested_at.isoformat(),
+                        "indexed": record.indexed,
+                    }
+                    for record in results
+                ]
+
+            except SQLAlchemyError as e:
+                logger.error(f"Error listing files: {e}")
+                return []
