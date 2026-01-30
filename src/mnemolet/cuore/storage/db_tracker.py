@@ -4,35 +4,17 @@ from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Integer,
-    String,
     create_engine,
     event,
     select,
 )
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from mnemolet.config import DB_PATH
+from mnemolet.cuore.storage.models import Base, FileRecord
 
 logger = logging.getLogger(__name__)
-
-Base = declarative_base()
-
-
-class FileRecord(Base):
-    """SQLAlchemy ORM model for files table"""
-
-    __tablename__ = "files"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    path = Column(String, unique=True, nullable=False)
-    hash = Column(String, nullable=False)
-    ingested_at = Column(DateTime(timezone=True), nullable=False)
-    indexed = Column(Boolean, default=False, nullable=False)
 
 
 class DBTracker:
