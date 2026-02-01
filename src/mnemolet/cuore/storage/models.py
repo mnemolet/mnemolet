@@ -31,7 +31,7 @@ class ChatSession(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String, default="New Chat", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), nullable=False
     )
 
     # Relationship to messages
@@ -61,7 +61,7 @@ class ChatMessage(Base):
     role: Mapped[str] = mapped_column(String, nullable=False)  # 'user' or 'assistant'
     message: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), nullable=False
     )
 
     # Relationship to session
@@ -71,6 +71,6 @@ class ChatMessage(Base):
 
     def __repr__(self):
         return (
-            f"<ChatSession(id={self.id}, role='{self.role}', "
+            f"<ChatMessage(id={self.id}, role='{self.role}', "
             f"session_id={self.session_id})>"
         )
