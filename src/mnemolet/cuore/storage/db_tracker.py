@@ -1,76 +1,19 @@
 import logging
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import (
-    create_engine,
-    event,
     select,
 )
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, sessionmaker
 
-from mnemolet.config import DB_PATH
-from mnemolet.cuore.storage.models import Base, FileRecord
+from mnemolet.cuore.storage.base_db import BaseDatabaseManager
+from mnemolet.cuore.storage.models import FileRecord
 
 logger = logging.getLogger(__name__)
 
 
-class DBTracker:
-    def __init__(self, db_path: Optional[Path] = None):
-        self.db_path = db_path or DB_PATH
-
-        # Ensure parent directory exists
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Create database URL
-        db_url = f"sqlite:///{self.db_path}"
-
-        self.engine = create_engine(
-            db_url,
-            echo=False,
-            connect_args={
-                "check_same_thread": False,
-                "timeout": 30,  # add timeout for concurrent access
-            },
-        )
-
-        # Configure session factory
-        self.SessionLocal = sessionmaker(
-            bind=self.engine,
-            autocommit=False,
-            autoflush=False,
-            expire_on_commit=False,  # for better performance
-        )
-
-        # Enable WAL mode and foreign keys
-        self._configure_sqlite()
-
-        # Create tables
-        self._create_tables()
-
-    def _configure_sqlite(self):
-        """Configure SQLite with WAL mode and foreign keys."""
-
-        @event.listens_for(self.engine, "connect")
-        def set_sqlite_pragma(dbapi_connection, connection_record):
-            """Set PRAGMAs on SQLite connection."""
-            cursor = dbapi_connection.cursor()
-            cursor.execute("PRAGMA journal_mode=WAL")
-            cursor.execute("PRAGMA foreign_keys=ON")
-            cursor.close()
-            logger.debug("SQLite PRAGMAs configured: WAL mode and foreign keys enabled")
-
-    def _create_tables(self):
-        """Create all tables defined in Base metadata."""
-        Base.metadata.create_all(bind=self.engine)
-        logger.info(f"[DBTracker] Tables created/verified at {self.db_path}")
-
-    def get_session(self) -> Session:
-        """Get a new database session."""
-        return self.SessionLocal()
-
+class DBTracker(BaseDatabaseManager):
     def add_file(self, path: str, file_hash: str) -> None:
         """
         Insert a new file if it does not exist.
