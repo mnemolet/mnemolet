@@ -27,7 +27,7 @@ def list_history():
 @click.option("--json", "as_json", is_flag=True, help="Output session in JSON")
 def show(session_id, as_json):
     h = ChatHistory()
-    session = h.get_session(session_id)
+    session = h.get_chat_session(session_id)
     messages = h.get_messages(session_id)
 
     if not messages:

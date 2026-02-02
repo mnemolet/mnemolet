@@ -108,7 +108,7 @@ def show_session(
     format: str = Query("json", enum=["json", "text"]),
 ):
     h = ChatHistory()
-    session = h.get_session(session_id)
+    session = h.get_chat_session(session_id)
     messages = h.get_messages(session_id)
 
     if not h.session_exists(session_id):
