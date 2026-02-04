@@ -24,6 +24,19 @@ class ChatSession:
         if self.history:
             full_prompt = self.build_context(query)
 
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"LLM PAYLOAD (history_len={len(self.history)}, "
+                f"chars={len(full_prompt)}):\n"
+                f"{'=' * 80}\n{full_prompt}\n{'=' * 80}"
+            )
+        else:
+            # LOG SUMMARY (INFO level - always visible)
+            logger.info(
+                f"Sending query to LLM (history_len={len(self.history)}, "
+                f"payload_chars={len(full_prompt)})"
+            )
+
         for chunk, sources in generate_answer(
             retriever=self.retriever,
             generator=self.generator,

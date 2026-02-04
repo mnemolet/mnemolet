@@ -166,7 +166,7 @@ def run_chat(
             history.add_message(session_id, "user", user_input)
 
             assistant_chunks = []
-            for c in session.ask(user_input):  # No run_chat_turn needed!
+            for c in session.ask(user_input):
                 assistant_chunks.append(c)
                 click.echo(c, nl=False)
 
