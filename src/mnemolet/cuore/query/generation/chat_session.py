@@ -48,7 +48,7 @@ class ChatSession:
                 yield chunk
                 results.append(chunk)
 
-        print()
+        # print()
 
         # save full response in history
         answer = "".join(results)

@@ -38,7 +38,7 @@ def create_session():
 async def send_message(request: Request):
     import json
 
-    from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
+    from mnemolet.cuore.query.generation.chat_session import ChatSession
     from mnemolet.cuore.query.generation.local_generator import get_llm_generator
     from mnemolet.cuore.query.retrieval.retriever import get_retriever
 
@@ -75,26 +75,30 @@ async def send_message(request: Request):
     h.add_message(session_id, "user", message)
 
     def stream_response():
-        for c in run_chat_turn(
-            retriever=retriever,
-            generator=generator,
-            user_input=message,
-            messages=initial_messages,
-            session_id=session_id,
-            stream=True,
-        ):
-            assistant_chunks.append(c)
-            data = json.dumps({"type": "chunk", "data": c})
-            yield f"{data}\n".encode("utf-8")
+        # stateless pattern
+        session = ChatSession(retriever=retriever, generator=generator)
 
-        # save assistant message
+        if initial_messages:
+            session.load_history(initial_messages)
+
+        for chunk in session.ask(message):
+            assistant_chunks.append(chunk)
+            yield f"{json.dumps({'type': 'chunk', 'data': chunk})}\n".encode("utf-8")
+
+        # Save assistant response AFTER generation completes
         full_msg = "".join(assistant_chunks).strip()
         if full_msg:
             h.add_message(session_id, "assistant", full_msg)
-        done = json.dumps({"type": "done", "session_id": session_id})
-        yield f"{done}\n".encode("utf-8")
 
-    return StreamingResponse(stream_response(), media_type="application/json")
+        yield (
+            f"{json.dumps({'type': 'done', 'session_id': session_id})}\n".encode(
+                "utf-8"
+            )
+        )
+
+    return StreamingResponse(
+        stream_response(), media_type="application/json; charset=utf-8"
+    )
 
 
 @api_router.get("/sessions")
