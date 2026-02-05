@@ -85,8 +85,9 @@ def start(
             click.echo(f"No messages found for session {session_id}")
             return
 
-        initial_messages = [{"role": msg["role"],
-                             "message": msg["message"]} for msg in messages]
+        initial_messages = [
+            {"role": msg["role"], "message": msg["message"]} for msg in messages
+        ]
 
         if messages:
             click.echo("Loaded previous session history: \n")
@@ -130,12 +131,18 @@ def run_chat(
     session_id=None,
     history=None,
 ):
-    from mnemolet.cuore.query.generation.chat_runner import run_chat_turn
+    from mnemolet.cuore.query.generation.chat_session import ChatSession
 
     if retriever and not retriever.has_documents():
         click.echo("No documents indexed yet - chatting without context!")
 
     click.echo("Starting chat. Type '/help' for help and '/quit' to quit.\n")
+
+    session = ChatSession(retriever=retriever, generator=generator)
+
+    # Load initial history if continuing a session
+    if initial_messages:
+        session.load_history(initial_messages)
 
     while True:
         try:
@@ -159,14 +166,7 @@ def run_chat(
             history.add_message(session_id, "user", user_input)
 
             assistant_chunks = []
-            for c in run_chat_turn(
-                retriever=retriever,
-                generator=generator,
-                user_input=user_input,
-                messages=initial_messages,
-                session_id=session_id,
-                stream=True,
-            ):
+            for c in session.ask(user_input):
                 assistant_chunks.append(c)
                 click.echo(c, nl=False)
 

@@ -1,73 +1,128 @@
 import logging
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Optional
 
-from mnemolet.cuore.storage.base import BaseSQLite
+from sqlalchemy import (
+    select,
+)
+from sqlalchemy.exc import SQLAlchemyError
+
+from mnemolet.cuore.storage.base_db import BaseDatabaseManager
+from mnemolet.cuore.storage.models import FileRecord
 
 logger = logging.getLogger(__name__)
 
-CREATE_TABLE_FILES = """
-CREATE TABLE IF NOT EXISTS files (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT UNIQUE,
-    hash TEXT,
-    ingested_at TEXT,
-    indexed INTEGER DEFAULT 0
-);
-"""
 
+class DBTracker(BaseDatabaseManager):
+    def add_file(self, path: str, file_hash: str) -> None:
+        """
+        Insert a new file if it does not exist.
 
-class DBTracker(BaseSQLite):
-    def __init__(self, db_path: Path = None):
-        super().__init__(db_path)
-        self._create_tables()
+        Args:
+            path: File path
+            file_hash: File hash
+        """
+        with self.get_session() as session:
+            try:
+                # Check if file already exists by hash
+                existing = session.execute(
+                    select(FileRecord).where(FileRecord.hash == file_hash)
+                ).scalar_one_or_none()
 
-    def _create_tables(self):
-        """
-        Init SQLite db if it does not exist (only once).
-        """
-        with self._get_connection() as conn:
-            logger.info("[DBTracker] Create Table Files")
-            self.exec_schema(conn, CREATE_TABLE_FILES)
+                if existing is None:
+                    # Create new record
+                    file_record = FileRecord(
+                        path=path,
+                        hash=file_hash,
+                        ingested_at=datetime.now(UTC),
+                        indexed=False,
+                    )
+                    session.add(file_record)
+                    session.commit()
+                    logger.debug(f"Added file: {path}")
+                else:
+                    logger.debug(
+                        f"File already exists with hash {file_hash}: {existing.path}"
+                    )
 
-    def add_file(self, path: str, file_hash: str):
-        """
-        Insert a new file if if does not exist.
-        """
-        with self._get_connection() as conn:
-            conn.execute(
-                """
-                INSERT OR IGNORE INTO files (path, hash, ingested_at)
-                VALUES (?, ?, ?)
-            """,
-                (path, file_hash, datetime.now(UTC).isoformat()),
-            )
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error adding file {path}: {e}")
+                raise
 
     def file_exists(self, file_hash: str) -> bool:
         """
         Check if file with this hash is already in db.
-        """
-        with self._get_connection() as conn:
-            curr = conn.execute("SELECT 1 FROM files WHERE hash = ?", (file_hash,))
-            return curr.fetchone() is not None
 
-    def mark_indexed(self, file_hash: str):
+        Args:
+            file_hash: File hash to check
+
+        Returns:
+            True if file exists, False otherwise
         """
-        Mark file as indexed is Qdrant.
+        with self.get_session() as session:
+            try:
+                result = session.execute(
+                    select(FileRecord).where(FileRecord.hash == file_hash)
+                ).scalar_one_or_none()
+                return result is not None
+            except SQLAlchemyError as e:
+                logger.error(f"Error checking file existence {file_hash}: {e}")
+                return False
+
+    def mark_indexed(self, file_hash: str) -> None:
         """
-        with self._get_connection() as conn:
-            conn.execute("UPDATE files SET indexed = 1 WHERE hash = ?", (file_hash,))
+        Mark file as indexed in Qdrant.
+
+        Args:
+            file_hash: Hash of file to mark as indexed
+        """
+        with self.get_session() as session:
+            try:
+                result = session.execute(
+                    select(FileRecord).where(FileRecord.hash == file_hash)
+                ).scalar_one_or_none()
+
+                if result:
+                    result.indexed = True
+                    session.commit()
+                    logger.debug(f"Marked file as indexed: {file_hash}")
+                else:
+                    logger.warning(f"File not found for marking indexed: {file_hash}")
+
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error marking file as indexed {file_hash}: {e}")
+                raise
 
     def list_files(self, indexed: Optional[bool] = None) -> list[dict]:
         """
-        List all tracked files, can be optionally filtered by indexed status.
+        List all tracked files, optionally filtered by indexed status.
+
+        Args:
+            indexed: If True/False, filter by indexed status. If None, return all.
+
+        Returns:
+            List of dictionaries containing file information
         """
-        query = "SELECT path, hash, ingested_at, indexed FROM files"
-        params = ()
-        if indexed is not None:
-            query += " WHERE indexed = ?"
-            params = (1 if indexed else 0,)
-        with self._get_connection() as conn:
-            rows = conn.execute(query, params).fetchall()
-            return [dict(row) for row in rows]
+        with self.get_session() as session:
+            try:
+                query = select(FileRecord)
+                if indexed is not None:
+                    query = query.where(FileRecord.indexed == indexed)
+                results = session.execute(query).scalars().all()
+
+                return [
+                    {
+                        "id": record.id,
+                        "path": record.path,
+                        "hash": record.hash,
+                        "ingested_at": record.ingested_at.isoformat(),
+                        "indexed": record.indexed,
+                    }
+                    for record in results
+                ]
+
+            except SQLAlchemyError as e:
+                logger.error(f"Error listing files: {e}")
+                return []
