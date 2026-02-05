@@ -131,7 +131,7 @@ def run_chat(
     session_id=None,
     history=None,
 ):
-    from mnemolet.cuore.query.generation.chat_runner import ChatSession
+    from mnemolet.cuore.query.generation.chat_session import ChatSession
 
     if retriever and not retriever.has_documents():
         click.echo("No documents indexed yet - chatting without context!")
