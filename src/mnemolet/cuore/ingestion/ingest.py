@@ -34,7 +34,7 @@ def ingest(
     files = [f for f in files if f.is_file()]
     if not files:
         logger.warning("No files found to ingest.")
-        return
+        return {"files": 0, "chunks": 0, "time": 0.0}
     logger.info(f"Found {len(files)} files to ingest from {directory}.")
 
     logger.info(f"Starting ingestion from {directory}")
