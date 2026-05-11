@@ -43,7 +43,7 @@ class Retriever:
     def has_documents(self) -> bool:
         if not self._probed:
             self._has_docs = bool(self.retrieve("__probe__"))
-            self.probed = True
+            self._probed = True
         return self._has_docs
 
 
