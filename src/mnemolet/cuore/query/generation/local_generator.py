@@ -82,7 +82,6 @@ class LocalGenerator:
                         f"JSON decode failed: {e}. Raw response: {response.text[:1000]}"
                     )
                     raise RuntimeError(f"Invalid JSON response from Ollama: {e}") from e
-                    continue
         except requests.RequestException as e:
             logger.error(f"Request failed: {e}")
             raise RuntimeError(f"Failed to generate answer: {e}") from e
