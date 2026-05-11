@@ -1,4 +1,6 @@
 import logging
+import secrets
+from pathlib import Path
 
 from fastapi import (
     APIRouter,
@@ -51,7 +53,9 @@ async def do_ingestion(files, force: bool = False):
     saved_files = []
 
     for f in files:
-        dest = UPLOAD_DIR / f.filename
+        ext = Path(f.filename).suffix
+        safe_name = f"{secrets.token_hex(8)}{ext}"
+        dest = UPLOAD_DIR / safe_name
 
         content = await f.read()
         dest.write_bytes(content)
