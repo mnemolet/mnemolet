@@ -36,6 +36,12 @@ def create_session():
 
 @api_router.post("/sessions/messages")
 async def send_message(request: Request):
+    """
+    Send a message and stream the assistant response.
+
+    Note: Settings (Qdrant URL, collection, Ollama URL, model, etc.) are read
+    from global config at startup and cannot be overridden per-request.
+    """
     import json
 
     from mnemolet.cuore.query.generation.chat_session import ChatSession
