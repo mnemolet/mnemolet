@@ -1,9 +1,10 @@
 from pathlib import Path
+from typing import Iterator
 
 from pypdf import PdfReader
 
 
-def extract_pdf(file: Path, chunk_size: int) -> str:
+def extract_pdf(file: Path, chunk_size: int) -> Iterator[str]:
     """
     Yield text chunks from a PDF.
 
@@ -27,7 +28,7 @@ def extract_pdf(file: Path, chunk_size: int) -> str:
 
         while len(text) >= chunk_size:
             yield text[:chunk_size]
-            text = text[chunk_size]
+            text = text[chunk_size:]
 
     if text:
         yield text
