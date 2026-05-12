@@ -30,7 +30,7 @@ class TextExtractor(Extractor):
         ".ps1",
         ".rb",
         ".php",
-        "pl",
+        ".pl",
         # markdown
         # TODO: need additional work for csv and html
         ".md",
