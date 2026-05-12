@@ -5,6 +5,7 @@ import click
 from mnemolet.config import (
     EMBED_MODEL,
     MIN_SCORE,
+    OLLAMA_MODEL,
     OLLAMA_PROMPT,
     OLLAMA_URL,
     QDRANT_COLLECTION,
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--ollama-model",
-    default="llama3",
+    default=OLLAMA_MODEL,
     show_default=True,
     help="Local model to use for generation.",
 )
