@@ -23,7 +23,7 @@ def _get_model() -> SentenceTransformer:
 
 
 def get_dimension() -> int:
-    return _get_model().get_sentence_embedding_dimension()
+    return _get_model().get_embedding_dimension()
 
 
 def embed_texts_batch(
