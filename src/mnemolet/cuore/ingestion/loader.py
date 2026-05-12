@@ -47,12 +47,12 @@ def stream_files(
 
                 if not file_added:
                     tracker.add_file(resolved_path, file_hash)
+                    file_added = True
 
-                data = {
+                yield {
                     "path": resolved_path,
                     "content": content_part,
                     "hash": file_hash,
                 }
-            yield data
-        except Exception as e:
-            print(f"Skipping {file_path}: {e}")
+        except Exception:
+            logger.exception("Skipping %s", file_path)
