@@ -1,12 +1,13 @@
 from typing import Any
 
 from qdrant_client import QdrantClient
-from sentence_transformers import SentenceTransformer
+
+from mnemolet.cuore.embeddings.local_llm_embed import get_model
 
 
 class Qdrant:
     def __init__(self, qdrant_url: str, collection_name, model: str):
-        self.model = SentenceTransformer(model)
+        self.model = get_model()
         self.client = QdrantClient(qdrant_url)
         self.collection_name = collection_name
 

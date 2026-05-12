@@ -22,6 +22,11 @@ def _get_model() -> SentenceTransformer:
     return _model
 
 
+def get_model() -> SentenceTransformer:
+    """Return the shared SentenceTransformer singleton."""
+    return _get_model()
+
+
 def get_dimension() -> int:
     return _get_model().get_embedding_dimension()
 
