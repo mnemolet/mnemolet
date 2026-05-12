@@ -5,6 +5,16 @@ from importlib.metadata import PackageNotFoundError, version
 
 import click
 
+from mnemolet.cli.commands.answer import answer
+from mnemolet.cli.commands.chat import chat
+from mnemolet.cli.commands.config import init_config
+from mnemolet.cli.commands.dashboard import dashboard
+from mnemolet.cli.commands.ingest import ingest
+from mnemolet.cli.commands.list import list_collections
+from mnemolet.cli.commands.remove import remove
+from mnemolet.cli.commands.search import search
+from mnemolet.cli.commands.serve import serve
+from mnemolet.cli.commands.stats import stats
 from mnemolet.config import (
     QDRANT_URL,
 )
@@ -70,36 +80,17 @@ def cli(ctx, verbose):
     logger.debug(f"Logger init with level={level}")
 
 
-def lazy_import(module: str, name: str):
-    """
-    Return a click command that imports its implementation only on execution.
-    """
-
-    logger.debug(f"[lazy_import] preparing to load {module}:{name}")
-
-    def _wrapper(*args, **kwargs):
-        logger.debug(f"[lazy_import] importing module {module}")
-        mod = __import__(module, fromlist=[name])
-
-        logger.debug(f"[lazy_import] accessing attribute {name}")
-        return getattr(mod, name)
-
-    cmd = _wrapper()
-
-    return cmd
-
-
 def register_commands():
-    cli.add_command(lazy_import("mnemolet.cli.commands.config", "init_config"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.ingest", "ingest"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.search", "search"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.answer", "answer"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.stats", "stats"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.list", "list_collections"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.remove", "remove"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.serve", "serve"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.dashboard", "dashboard"))
-    cli.add_command(lazy_import("mnemolet.cli.commands.chat", "chat"))
+    cli.add_command(init_config)
+    cli.add_command(ingest)
+    cli.add_command(search)
+    cli.add_command(answer)
+    cli.add_command(stats)
+    cli.add_command(list_collections)
+    cli.add_command(remove)
+    cli.add_command(serve)
+    cli.add_command(dashboard)
+    cli.add_command(chat)
 
 
 register_commands()
