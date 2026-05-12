@@ -17,7 +17,7 @@ batch_size = 100
 [ollama]
 host = "localhost"
 port = 11434
-model = "llama3"
+model = "llama3.2"
 prompt = """
 # Role
 You are a helpful and professional assistant. Your goal is to provide accurate 
