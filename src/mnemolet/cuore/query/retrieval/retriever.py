@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from qdrant_client import QdrantClient
+
 from mnemolet.cuore.query.retrieval.search_documents import search_documents
 from mnemolet.cuore.utils.utils import filter_by_min_score
 
@@ -18,9 +20,7 @@ class RetrieverConfig:
 class Retriever:
     def __init__(self, config: RetrieverConfig):
         self.cfg = config
-        self._probed = False
-        self._has_docs = True
-        self._disabled = False
+        self._client = QdrantClient(url=config.qdrant_url)
 
     def retrieve(self, query: str) -> list[dict]:
         """
@@ -34,17 +34,16 @@ class Retriever:
                 query,
                 self.cfg.top_k,
             )
-            self._disabled = False
             return filter_by_min_score(results, self.cfg.min_score)
         except Exception:
-            self._disabled = True
             return []
 
     def has_documents(self) -> bool:
-        if not self._probed:
-            self._has_docs = bool(self.retrieve("__probe__"))
-            self._probed = True
-        return self._has_docs
+        try:
+            info = self._client.get_collection(self.cfg.collection_name)
+            return info.points_count > 0
+        except Exception:
+            return False
 
 
 def get_retriever(
