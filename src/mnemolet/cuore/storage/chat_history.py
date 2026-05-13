@@ -14,40 +14,45 @@ logger = logging.getLogger(__name__)
 class ChatHistory(BaseDatabaseManager):
     def create_session(self, title: str = "New Chat") -> int:
         """Create a new chat session and return its ID."""
-
-        def _operation(session):
-            session_obj = ChatSession(
-                title=title,
-                created_at=datetime.now(UTC),
-            )
-            session.add(session_obj)
-            session.flush()  # Get ID before commit
-            logger.debug(f"Created chat session: {session_obj.id}")
-            return session_obj.id
-
-        return self._safe_execute(_operation)
+        with self.get_session() as session:
+            try:
+                session_obj = ChatSession(
+                    title=title,
+                    created_at=datetime.now(UTC),
+                )
+                session.add(session_obj)
+                session.flush()
+                session.commit()
+                logger.debug(f"Created chat session: {session_obj.id}")
+                return session_obj.id
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error creating session: {e}")
+                raise
 
     def add_message(self, session_id: int, role: str, message: str) -> int:
         """Add a message to a chat session and return its ID."""
+        with self.get_session() as session:
+            try:
+                session_obj = session.get(ChatSession, session_id)
+                if not session_obj:
+                    raise ValueError(f"Session {session_id} not found")
 
-        def _operation(session):
-            # Verify session exists first
-            session_obj = session.get(ChatSession, session_id)
-            if not session_obj:
-                raise ValueError(f"Session {session_id} not found")
-
-            chat_message = ChatMessage(
-                session_id=session_id,
-                role=role,
-                message=message,
-                created_at=datetime.now(UTC),
-            )
-            session.add(chat_message)
-            session.flush()
-            logger.debug(f"Added message to session {session_id}: {role}")
-            return chat_message.id
-
-        return self._safe_execute(_operation)
+                chat_message = ChatMessage(
+                    session_id=session_id,
+                    role=role,
+                    message=message,
+                    created_at=datetime.now(UTC),
+                )
+                session.add(chat_message)
+                session.flush()
+                session.commit()
+                logger.debug(f"Added message to session {session_id}: {role}")
+                return chat_message.id
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error adding message: {e}")
+                raise
 
     def get_chat_session(self, session_id: int) -> Optional[dict]:
         """Get session metadata by ID."""
@@ -78,7 +83,6 @@ class ChatHistory(BaseDatabaseManager):
                     .scalars()
                     .all()
                 )
-
                 return [
                     {
                         "id": msg.id,
@@ -103,13 +107,12 @@ class ChatHistory(BaseDatabaseManager):
                     .scalars()
                     .all()
                 )
-
                 return [
                     {
                         "id": s.id,
                         "title": s.title,
                         "created_at": s.created_at.isoformat(),
-                        "message_count": len(s.messages),  # Uses relationship
+                        "message_count": len(s.messages),
                     }
                     for s in sessions
                 ]
@@ -128,52 +131,51 @@ class ChatHistory(BaseDatabaseManager):
 
     def delete_session(self, session_id: int) -> bool:
         """Delete a session and all its messages (cascade handled by ORM)."""
-
-        def _operation(session):
-            session_obj = session.get(ChatSession, session_id)
-            if not session_obj:
-                logger.warning(f"Session {session_id} not found for deletion")
-                return False
-
-            session.delete(session_obj)
-            logger.debug(f"Deleted session {session_id} and its messages")
-            return True
-
-        return self._safe_execute(_operation)
+        with self.get_session() as session:
+            try:
+                session_obj = session.get(ChatSession, session_id)
+                if not session_obj:
+                    logger.warning(f"Session {session_id} not found for deletion")
+                    return False
+                session.delete(session_obj)
+                session.commit()
+                logger.debug(f"Deleted session {session_id} and its messages")
+                return True
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error deleting session {session_id}: {e}")
+                raise
 
     def delete_all_sessions(self) -> int:
         """Delete all sessions and messages. Returns count of deleted sessions."""
-
-        def _operation(session):
-            result = session.execute(select(ChatSession))
-            sessions = result.scalars().all()
-            count = len(sessions)
-
-            for s in sessions:
-                session.delete(s)
-
-            logger.debug(f"Deleted {count} sessions and all associated messages")
-            return count
-
-        return self._safe_execute(_operation)
+        with self.get_session() as session:
+            try:
+                result = session.execute(select(ChatSession))
+                sessions = result.scalars().all()
+                count = len(sessions)
+                for s in sessions:
+                    session.delete(s)
+                session.commit()
+                logger.debug(f"Deleted {count} sessions and all associated messages")
+                return count
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error deleting all sessions: {e}")
+                raise
 
     def rename_session(self, session_id: int, title: str) -> bool:
         """Rename a chat session."""
-
-        def _operation(session):
-            session_obj = session.get(ChatSession, session_id)
-            if not session_obj:
-                logger.warning(f"Session {session_id} not found for renaming")
-                return False
-
-            session_obj.title = title
-            logger.debug(f"Renamed session {session_id} to '{title}'")
-            return True
-
-        return self._safe_execute(_operation)
-
-    def _row_to_dict(self, row):
-        return dict(row) if row else None
-
-    def _rows_to_dicts(self, rows):
-        return [dict(r) for r in rows]
+        with self.get_session() as session:
+            try:
+                session_obj = session.get(ChatSession, session_id)
+                if not session_obj:
+                    logger.warning(f"Session {session_id} not found for renaming")
+                    return False
+                session_obj.title = title
+                session.commit()
+                logger.debug(f"Renamed session {session_id} to '{title}'")
+                return True
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Error renaming session {session_id}: {e}")
+                raise

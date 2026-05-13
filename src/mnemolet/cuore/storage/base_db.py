@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import create_engine, event
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from mnemolet.config import DB_PATH
@@ -64,24 +63,3 @@ class BaseDatabaseManager:
     def get_session(self) -> Session:
         """Get a new database session."""
         return self.SessionLocal()
-
-    def _safe_execute(self, operation, *args, **kwargs):
-        """
-        Helper to safely execute database operations with automatic rollback on error.
-
-        Args:
-            operation: Callable that takes a session and performs DB operations
-            *args, **kwargs: Arguments to pass to the operation
-
-        Returns:
-            Result of the operation or None on error
-        """
-        with self.get_session() as session:
-            try:
-                result = operation(session, *args, **kwargs)
-                session.commit()
-                return result
-            except SQLAlchemyError as e:
-                session.rollback()
-                logger.error(f"Database error in {operation.__name__}: {e}")
-                raise
