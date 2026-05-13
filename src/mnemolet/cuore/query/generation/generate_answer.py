@@ -14,46 +14,23 @@ def generate_answer(
     retriever: Retriever,
     generator: LocalGenerator,
     query: str,
-    chat: bool = False,  # default for answer endpoint
+    chat: bool = False,
 ) -> Generator[Tuple[str, Optional[list[dict]]], None, None]:
     """
     Wrapper around LocalGenerator.
     """
-    # ------- Retrieval -------
     filtered_results = retriever.retrieve(query)
 
-    # ------- Answer mode -------
-    if not chat:
-        if not filtered_results:
-            yield "No relevant documents found. Using general knowledge...\n\n", None
+    if not chat and not filtered_results:
+        yield "No relevant documents found. Using general knowledge...\n\n", None
 
-        # generator = LocalGenerator(ollama_url, model)
-        context_chunks = [r["text"] for r in filtered_results]
-        logger.info("Generating answer..")
+    context_chunks = [r["text"] for r in filtered_results]
+    mode = "chat" if chat else "answer"
+    logger.info(f"Generating {mode} response...")
 
-        # stream LLM output
-        for c in _generate_llm_chunks(generator, query, context_chunks):
-            yield c, None
-
-        # finally send sources
-        yield _yield_sources_if_any(filtered_results)
-        return
-
-    # ------- Chat mode -------
-    if filtered_results:
-        logger.info("Relevant context found for chat.")
-        context_chunks = [r["text"] for r in filtered_results]
-    else:
-        logger.info("No relevant context found; continue chat without context.")
-        context_chunks = []
-
-    logger.info("Generating chat response...")
-
-    # stream LLM output
     for c in _generate_llm_chunks(generator, query, context_chunks):
         yield c, None
 
-    # return sources only if we had any
     yield _yield_sources_if_any(filtered_results)
 
 
