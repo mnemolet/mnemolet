@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 from qdrant_client import QdrantClient
 
-from mnemolet.cuore.query.retrieval.search_documents import search_documents
 from mnemolet.cuore.utils.utils import filter_by_min_score
 
 
@@ -27,14 +26,29 @@ class Retriever:
         Retrieve and filter context chunks from Qdrant.
         """
         try:
-            results = search_documents(
-                self.cfg.qdrant_url,
-                self.cfg.collection_name,
-                self.cfg.embed_model,
-                query,
-                self.cfg.top_k,
+            from mnemolet.cuore.embeddings.local_llm_embed import _get_model
+
+            model = _get_model()
+            query_vector = model.encode(query).tolist()
+
+            results = self._client.query_points(
+                collection_name=self.cfg.collection_name,
+                query=query_vector,
+                limit=self.cfg.top_k,
+                with_payload=True,
             )
-            return filter_by_min_score(results, self.cfg.min_score)
+
+            hits = [
+                {
+                    "id": p.id,
+                    "text": p.payload.get("text", ""),
+                    "score": p.score,
+                    "path": p.payload.get("path", ""),
+                    "hash": p.payload.get("hash", ""),
+                }
+                for p in results.points
+            ]
+            return filter_by_min_score(hits, self.cfg.min_score)
         except Exception:
             return []
 
