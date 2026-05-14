@@ -78,13 +78,13 @@ def ingest(
 
         # if batch full —> embed & store
         if len(chunk_batch) >= batch_size:
-            _store_batch(indexer, chunk_batch, metadata_batch, embedding_dim, force)
+_store_batch(indexer, chunk_batch, metadata_batch)
             chunk_batch.clear()
             metadata_batch.clear()
 
     # handle the rest
     if chunk_batch:
-        _store_batch(indexer, chunk_batch, metadata_batch, embedding_dim, force)
+_store_batch(indexer, chunk_batch, metadata_batch)
 
     pbar.close()
 
@@ -93,7 +93,7 @@ def ingest(
     return {"files": total_files, "chunks": total_chunks, "time": total_time}
 
 
-def _store_batch(indexer, chunk_batch, metadata_batch, embedding_dim, force):
+def _store_batch(indexer, chunk_batch, metadata_batch):
     from mnemolet.cuore.embeddings.local_llm_embed import (
         embed_texts_batch,
     )
