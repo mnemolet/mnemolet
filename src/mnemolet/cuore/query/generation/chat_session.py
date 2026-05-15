@@ -57,8 +57,6 @@ class ChatSession:
             {"role": "assistant", "message": answer, "sources": sources or []}
         )
 
-        return answer
-
     def append_to_history(self, role: str, content: str):
         """
         Add a context from the saved history.
