@@ -47,19 +47,13 @@ class AudioExtractor(Extractor):
             buffer += segment.text.strip() + " "
 
             if len(buffer) >= self.buffer_limit:
-                logger.warning(f"[audio] yielding buffer block: len={len(buffer)}")
-                logger.debug(buffer[:300])  # preview first 300 chars
+                logger.debug(f"[audio] yielding buffer block: len={len(buffer)}")
+                logger.debug(buffer[:300])
                 yield buffer
                 buffer = ""
         if buffer:
-            logger.warning(f"[audio] yielding FINALbuffer block: len={len(buffer)}")
-            logger.debug(buffer[:300])  # preview first 300 chars
+            logger.debug(f"[audio] yielding FINAL buffer block: len={len(buffer)}")
+            logger.debug(buffer[:300])
             yield buffer
-
-            """
-            for i in range(0, len(text), self.chunk_size):
-                print(f"TEXT with chunk: {text}")
-                yield text[i : i + self.chunk_size]
-            """
 
         logger.info(f"[audio] Finished transcription: {file}")
