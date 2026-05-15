@@ -1,3 +1,5 @@
+import string
+
 import click
 
 from mnemolet.config import (
@@ -32,5 +34,5 @@ def stats(collection_name: str):
     click.echo("-" * 60)
     for k, v in stats.items():
         if k != "collection_name":
-            click.echo(f"{k.replace('_', ' ').title():22}: {v}")
+            click.echo(f"{string.capwords(k.replace('_', ' ')):22}: {v}")
     click.echo("-" * 60)
