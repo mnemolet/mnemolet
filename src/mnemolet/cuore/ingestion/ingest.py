@@ -78,13 +78,13 @@ def ingest(
 
         # if batch full —> embed & store
         if len(chunk_batch) >= batch_size:
-_store_batch(indexer, chunk_batch, metadata_batch)
+            _store_batch(indexer, chunk_batch, metadata_batch)
             chunk_batch.clear()
             metadata_batch.clear()
 
     # handle the rest
     if chunk_batch:
-_store_batch(indexer, chunk_batch, metadata_batch)
+        _store_batch(indexer, chunk_batch, metadata_batch)
 
     pbar.close()
 

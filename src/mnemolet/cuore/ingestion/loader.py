@@ -14,10 +14,7 @@ def stream_files(
 ) -> Iterator[dict[str, str, str]]:
     """
     Yield files from a dir in chunks, skipping files already ingested.
-    Duplicates by hash are skipped automatically.
     """
-    seen_hashes = set()
-
     for file_path in dir.rglob("*"):
         extractor = get_extractor(file_path)
         logger.debug(f" -> extractor: {extractor}")
@@ -30,13 +27,6 @@ def stream_files(
         if not force and tracker.file_exists(file_hash):
             logger.info(f"Skipping already ingested: {file_path}")
             continue
-
-        # Skip duplicates within current batch
-        if file_hash in seen_hashes:
-            logger.info(f"Skipping duplicate file in directory: {file_path}")
-            continue
-
-        seen_hashes.add(file_hash)
 
         try:
             file_added = False
